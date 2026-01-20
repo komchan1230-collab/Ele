@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* เพิ่มฟอนต์ Sarabun เพื่อความสวยงาม */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+
+:root {
+  font-family: 'Sarabun', sans-serif;
+}
