@@ -151,6 +151,7 @@ import { ref, onMounted } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { User, TriangleAlert, Megaphone, MapPin, MessageCircleMore } from 'lucide-vue-next';
+import axios from 'axios';
 
 // กำหนด Event สำหรับเปลี่ยนหน้า
 const emit = defineEmits(['changePage']);
@@ -162,11 +163,11 @@ const marker = ref(null);
 const lat = ref(13.9129);
 const lng = ref(100.4996);
 
-// ตัวแปรสำหรับฟอร์ม
+// ตัวแปรสำหรับฟอร์ม (ย้ายมาไว้ด้านบนเพื่อความชัดเจน)
 const form = ref({
   name: '',
   age: '',
-  gender: '',
+  gender: 'male',
   phone: '',
   details: ''
 });
@@ -177,6 +178,32 @@ const fileObjects = ref([]);
 onMounted(() => {
   initMap();
 });
+
+// ฟังก์ชันส่งข้อมูลไปยัง Backend (มีเพียงอันเดียว)
+const submitForm = async () => {
+  try {
+    const payload = {
+      reporter_name: form.value.name,
+      age: form.value.age,
+      gender: form.value.gender,
+      phone: form.value.phone,
+      details: form.value.details,
+      latitude: lat.value,
+      longitude: lng.value
+    };
+
+    // ส่งข้อมูลไปที่ Backend พอร์ต 3000 ที่เราจะสร้าง
+    const response = await axios.post('http://localhost:3000/api/reports', payload);
+    
+    if (response.status === 201) {
+      alert('บันทึกข้อมูลแจ้งปัญหาเรียบร้อยแล้ว');
+      emit('changePage', 'status'); // ย้ายไปหน้าแสดงสถานะ
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบว่าได้เปิด Backend หรือยัง');
+  }
+};
 
 // ฟังก์ชันสร้างแผนที่
 const initMap = () => {
@@ -254,22 +281,6 @@ const removeImage = (index) => {
 
 const filterPhone = (e) => {
   form.value.phone = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
-};
-
-const submitForm = () => {
-  const dataToSend = {
-    ...form.value,
-    location: { lat: lat.value, lng: lng.value },
-    imagesCount: fileObjects.value.length 
-  };
-  
-  let msg = `บันทึกข้อมูลเรียบร้อย!\n`;
-  msg += `ชื่อ: ${form.value.name}\n`;
-  msg += `จำนวนรูป: ${fileObjects.value.length} รูป\n`;
-  msg += `พิกัด: ${lat.value.toFixed(4)}, ${lng.value.toFixed(4)}`;
-  
-  alert(msg);
-  console.log("Files ready to upload:", fileObjects.value);
 };
 </script>
 

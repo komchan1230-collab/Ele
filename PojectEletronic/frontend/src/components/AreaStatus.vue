@@ -159,98 +159,75 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { User, TriangleAlert, Megaphone, MapPin, MessageCircleMore } from 'lucide-vue-next';
+import axios from 'axios';
 
-// รับ Event changePage จาก App.vue
+// 1. กำหนด Event สำหรับเปลี่ยนหน้า
 const emit = defineEmits(['changePage']);
 
-// 1. ข้อมูลจำลอง (Mock Data)
-const allStatusData = [
-  {
-    id: 1,
-    date: '2025-12-16',
-    startTime: '09:00',
-    endTime: '13:00',
-    location: 'เมเจอร์-ปากเกร็ด',
-    province: 'นนทบุรี',
-    status: 'in_progress' // in_progress, completed, pending
-  },
-  {
-    id: 2,
-    date: '2025-12-15',
-    startTime: '10:00',
-    endTime: '11:30',
-    location: 'ตลาดปากเกร็ด',
-    province: 'นนทบุรี',
-    status: 'completed'
-  },
-  {
-    id: 3,
-    date: '2025-12-25',
-    startTime: '13:00',
-    endTime: '16:00',
-    location: 'โรงเรียนปากเกร็ด',
-    province: 'นนทบุรี',
-    status: 'pending'
-  },
-  {
-    id: 4,
-    date: '2025-12-20',
-    startTime: '08:30',
-    endTime: '17:00',
-    location: 'ห้าแยกปากเกร็ด',
-    province: 'นนทบุรี',
-    status: 'completed'
-  }
-];
+// 2. ตัวแปรเก็บข้อมูล (รวมข้อมูลจำลองและข้อมูลจาก Database)
+const rawReports = ref([]);
 
-// 2. ตัวแปรเก็บค่าจาก Filter
-const filters = ref({
+// 3. ตัวแปรสำหรับกรองข้อมูล (Filter) - ใช้ reactive เพียงตัวเดียว
+const filters = reactive({
   startTime: '',
   endTime: '',
   date: '',
   keyword: ''
 });
 
-// 3. ตัวแปรเก็บข้อมูลที่จะแสดงผล
-const displayedStatus = ref([...allStatusData]);
+// 4. ฟังก์ชันดึงข้อมูลจาก Backend (Real-time)
+const fetchReports = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/reports');
+    // แปลงข้อมูลจาก DB ให้เข้ากับรูปแบบที่ Template ต้องการแสดงผล
+    rawReports.value = response.data.map(item => ({
+      id: item.id,
+      date: item.created_at, // ใช้ค่าวันที่จากฐานข้อมูล
+      startTime: new Date(item.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+      endTime: 'กำลังดำเนินการ', // สามารถปรับเปลี่ยนได้ตาม Logic 
+      location: item.location || 'ไม่ระบุสถานที่',
+      province: 'นนทบุรี',
+      status: item.status // 'in_progress', 'completed', 'pending' หรือ 'รอดำเนินการ'
+    }));
+  } catch (error) {
+    console.error("ดึงข้อมูลไม่สำเร็จ:", error);
+  }
+};
 
-// 4. ฟังก์ชันค้นหา
-const handleSearch = () => {
-  displayedStatus.value = allStatusData.filter(item => {
-    // กรองวันที่
-    const matchDate = !filters.value.date || item.date === filters.value.date;
-
+// 5. Computed สำหรับกรองข้อมูล (รักษาฟังก์ชันค้นหาเดิมไว้)
+const displayedStatus = computed(() => {
+  return rawReports.value.filter(item => {
     // กรองสถานที่ (Keyword)
-    const matchKeyword = !filters.value.keyword || 
-      item.location.includes(filters.value.keyword);
-
+    const matchKeyword = !filters.keyword || item.location.includes(filters.keyword);
+    
+    // กรองวันที่
+    const matchDate = !filters.date || item.date.startsWith(filters.date);
+    
     // กรองเวลา
     let matchTime = true;
-    if (filters.value.startTime && item.startTime < filters.value.startTime) {
-      matchTime = false;
-    }
-    if (filters.value.endTime && item.endTime > filters.value.endTime) {
-      matchTime = false;
-    }
+    if (filters.startTime && item.startTime < filters.startTime) matchTime = false;
+    if (filters.endTime && item.endTime > filters.endTime) matchTime = false;
 
-    return matchDate && matchKeyword && matchTime;
+    return matchKeyword && matchDate && matchTime;
   });
+});
+
+// 6. ฟังก์ชันจัดการฟอร์มและล้างค่า
+const handleSearch = () => {
+  // ทำงานอัตโนมัติผ่าน computed (displayedStatus)
+  console.log('Searching with:', filters);
 };
 
-// 5. ฟังก์ชันล้างค่าค้นหา
 const resetFilters = () => {
-  filters.value = {
-    startTime: '',
-    endTime: '',
-    date: '',
-    keyword: ''
-  };
-  displayedStatus.value = [...allStatusData];
+  filters.startTime = '';
+  filters.endTime = '';
+  filters.date = '';
+  filters.keyword = '';
 };
 
-// 6. ฟังก์ชันแปลงวันที่เป็นภาษาไทย (เช่น 2025-12-16 -> 16 ธ.ค. 2568)
+// 7. ฟังก์ชันแปลงวันที่เป็นภาษาไทย (เช่น 2025-12-16 -> 16 ธ.ค. 2568)
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
   const dateObj = new Date(dateStr);
@@ -265,9 +242,11 @@ const formatDate = (dateStr) => {
   return `${day} ${month} ${year}`;
 };
 
-// เรียกค้นหาครั้งแรก
+// 8. เริ่มต้นทำงาน
 onMounted(() => {
-  handleSearch();
+  fetchReports();
+  // ตั้งเวลาดึงข้อมูลใหม่ทุก 30 วินาทีเพื่อให้เป็น Real-time
+  setInterval(fetchReports, 30000);
 });
 </script>
 
