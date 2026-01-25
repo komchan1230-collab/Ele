@@ -1,37 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#dfe6ff] font-sarabun text-[#1c2330]">
     
-    <header class="bg-[#87CEEB] px-5 py-4 flex justify-between items-center text-black shadow-sm">
-      <h1 
-        class="text-lg font-bold m-0 cursor-pointer hover:opacity-70 transition-opacity" 
-        @click="$emit('changePage', 'home')"
-        title="กลับหน้าหลัก"
-      >
-        แจ้งปัญหาไฟดับ (ในชุมชนเมเจอร์ปากเกร็ด)
-      </h1>
-      <div class="cursor-pointer hover:opacity-70 transition" @click="$emit('changePage', 'profile')">
-        <User class="w-8 h-8 text-black" />
-      </div>
-    </header>
-
-    <nav class="bg-[#87CEEB] flex justify-around pb-2 shadow-md relative z-10">
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'report')">
-        <TriangleAlert class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งปัญหา</span>
-      </div>
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'news')">
-        <Megaphone class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดตามข่าวสาร</span>
-      </div>
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'status')">
-        <MapPin class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งเตือนสถานะพื้นที่</span>
-      </div>
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'contact')">
-        <MessageCircleMore class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดต่อเรา</span>
-      </div>
-    </nav>
+   
 
     <main class="w-full max-w-[1200px] mx-auto p-4 mt-4">
       
@@ -124,21 +94,50 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { 
   User, TriangleAlert, Megaphone, MapPin, MessageCircleMore,
   BarChart3, Users, ChevronRight 
 } from 'lucide-vue-next';
-import Chart from 'chart.js/auto'; // อย่าลืม npm install chart.js
+import Chart from 'chart.js/auto';
+import axios from 'axios';
 
 const emit = defineEmits(['changePage']);
 
-// Ref สำหรับ Canvas
+// Ref สำหรับ Canvas และ Chart Instance
 const lineChartRef = ref(null);
 const barChartRef = ref(null);
 const areaChartRef = ref(null);
+let charts = []; // เก็บตัวแปร Chart ไว้ทำลายเมื่อออกจากหน้า
+
+// ตัวแปรเก็บข้อมูลจาก MySQL
+const adminReports = ref([]);
+const stats = ref({ totalMonth: 0, today: 0, percent: 0 });
+let timer = null;
+
+// ฟังก์ชันดึงข้อมูลจาก Backend แบบเรียลไทม์
+const fetchAdminData = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/admin/reports');
+    adminReports.value = response.data;
+    
+    // คำนวณสถิติเบื้องต้น (ตัวอย่าง)
+    stats.value.totalMonth = adminReports.value.length;
+    stats.value.today = adminReports.value.filter(r => 
+      new Date(r.created_at).toDateString() === new Date().toDateString()
+    ).length;
+    
+    // อัปเดตกราฟด้วยข้อมูลจริงที่นี่ (ถ้าต้องการให้กราฟขยับตาม)
+  } catch (error) {
+    console.error("ดึงข้อมูลแอดมินไม่สำเร็จ:", error);
+  }
+};
 
 onMounted(() => {
+  fetchAdminData();
+  // ตั้งเวลาดึงข้อมูลใหม่ทุก 10 วินาที
+  timer = setInterval(fetchAdminData, 10000);
+
   const baseOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -148,63 +147,58 @@ onMounted(() => {
     }
   };
 
-  // 1. Line Chart
-  new Chart(lineChartRef.value, {
+  // 1. Line Chart (สถิติเหตุไฟดับภายในเดือน)
+  charts.push(new Chart(lineChartRef.value, {
     type: "line",
     data: {
       labels: ["สัปดาห์ที่ 1","สัปดาห์ที่ 2","สัปดาห์ที่ 3","สัปดาห์ที่ 4"],
       datasets: [{
         label: "เหตุการณ์",
-        data: [4,3,5,4],
+        data: [4, 3, 5, 4], // อนาคตสามารถเขียน Logic นับจาก adminReports ได้
         borderWidth: 3,
-        pointRadius: 3,
-        tension: 0.35,
         borderColor: '#2b79ff',
-        backgroundColor: '#2b79ff'
+        backgroundColor: '#2b79ff',
+        tension: 0.35
       }]
     },
-    options: {
-      ...baseOptions,
-      plugins: { legend: { display:false } }
-    }
-  });
+    options: { ...baseOptions, plugins: { legend: { display:false } } }
+  }));
 
-  // 2. Bar Chart (Stacked)
-  new Chart(barChartRef.value, {
+  // 2. Bar Chart (ปัญหาการแก้ไขของช่างแยกตามประเภท)
+  charts.push(new Chart(barChartRef.value, {
     type: "bar",
     data: {
       labels: ["สัปดาห์ที่ 1","สัปดาห์ที่ 2","สัปดาห์ที่ 3","สัปดาห์ที่ 4"],
       datasets: [
-        { label:"ประเภท 1", data:[3,2,3,3], backgroundColor:'#ff6384' },
-        { label:"ประเภท 2", data:[2,2,2,2], backgroundColor:'#36a2eb' },
-        { label:"ประเภท 3", data:[0,1,0,0], backgroundColor:'#cc65fe' }
+        { label:"รอดำเนินการ", data:[3,2,3,3], backgroundColor:'#ff6384' },
+        { label:"กำลังซ่อม", data:[2,2,2,2], backgroundColor:'#36a2eb' },
+        { label:"เสร็จแล้ว", data:[0,1,0,0], backgroundColor:'#cc65fe' }
       ]
     },
     options: {
       ...baseOptions,
-      scales: {
-        x: { stacked:true, grid:{ display:false } },
-        y: { stacked:true, beginAtZero:true, ticks:{ stepSize:1 } }
-      },
-      plugins: { legend: { position:"top" } }
+      scales: { x: { stacked:true }, y: { stacked:true, beginAtZero:true } }
     }
-  });
+  }));
 
-  // 3. Area Chart
-  new Chart(areaChartRef.value, {
+  // 3. Area Chart (ช่วงเวลาที่เกิดเหตุบ่อย)
+  charts.push(new Chart(areaChartRef.value, {
     type: "line",
     data: {
-      labels: ["สัปดาห์ที่ 1","สัปดาห์ที่ 2","สัปดาห์ที่ 3","สัปดาห์ที่ 4"],
+      labels: ["00:00","06:00","12:00","18:00"],
       datasets: [
-        { label:"ช่วง 1", data:[2,1,3,2], fill:true, tension:0.35, backgroundColor:'rgba(255, 99, 132, 0.2)', borderColor:'rgb(255, 99, 132)' },
-        { label:"ช่วง 2", data:[1,2,2,3], fill:true, tension:0.35, backgroundColor:'rgba(54, 162, 235, 0.2)', borderColor:'rgb(54, 162, 235)' }
+        { label:"เช้า-บ่าย", data:[2,1,3,2], fill:true, backgroundColor:'rgba(255, 99, 132, 0.2)', borderColor:'rgb(255, 99, 132)' },
+        { label:"เย็น-ค่ำ", data:[1,2,2,3], fill:true, backgroundColor:'rgba(54, 162, 235, 0.2)', borderColor:'rgb(54, 162, 235)' }
       ]
     },
-    options: {
-      ...baseOptions,
-      plugins: { legend: { position:"top" } }
-    }
-  });
+    options: baseOptions
+  }));
+});
+
+// ล้าง Timer และ Chart เมื่อออกจากหน้า
+onUnmounted(() => {
+  clearInterval(timer);
+  charts.forEach(chart => chart.destroy());
 });
 </script>
 

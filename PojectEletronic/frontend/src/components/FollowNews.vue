@@ -1,40 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#eef2f9] font-sarabun text-[#333]">
-    
-    <header class="bg-[#87CEEB] px-5 py-4 flex justify-between items-center text-black shadow-sm">
-      <h1 
-        class="text-lg font-bold m-0 cursor-pointer hover:opacity-70 transition-opacity" 
-        @click="$emit('changePage', 'home')"
-        title="กลับหน้าหลัก"
-      >
-        แจ้งปัญหาไฟดับ (ในชุมชนเมเจอร์ปากเกร็ด)
-      </h1>
-      <div class="cursor-pointer">
-        <User class="w-8 h-8 text-black" />
-      </div>
-    </header>
-
-    <nav class="bg-[#87CEEB] flex justify-around pb-2 shadow-md relative z-10">
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'report')">
-        <TriangleAlert class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งปัญหา</span>
-      </div>
-      
-      <div class="nav-item active cursor-pointer group">
-        <Megaphone class="icon-nav" /> 
-        <span>ติดตามข่าวสาร</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'status')">
-        <MapPin class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งเตือนสถานะพื้นที่</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'contact')">
-        <MessageCircleMore class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดต่อเรา</span>
-      </div>
-    </nav>
+   
 
     <main class="max-w-[1200px] mx-auto p-6">
       
@@ -152,116 +118,98 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { User, TriangleAlert, Megaphone, MapPin, MessageCircleMore } from 'lucide-vue-next';
+import axios from 'axios';
 
 // กำหนด Event เพื่อใช้เปลี่ยนหน้า
 const emit = defineEmits(['changePage']);
 
-// 1. ข้อมูลจำลอง (Mock Data)
-const allNewsData = [
-  {
-    id: 1,
-    location: 'เมเจอร์-ปากเกร็ด',
-    province: 'นนทบุรี',
-    detail: 'หมู่บ้านรุ่งเรืองธานี จะมีการดับไฟเพื่อแก้ไขปัญหาหม้อแปลงระเบิด',
-    date: '2025-12-25',
-    startTime: '12:00',
-    endTime: '16:00'
-  },
-  {
-    id: 2,
-    location: 'ตลาดปากเกร็ด',
-    province: 'นนทบุรี',
-    detail: 'ซ่อมแซมสายไฟหลักบริเวณทางเข้าตลาด',
-    date: '2025-12-26',
-    startTime: '09:00',
-    endTime: '11:00'
-  },
-  {
-    id: 3,
-    location: 'โรงเรียนปากเกร็ด',
-    province: 'นนทบุรี',
-    detail: 'แจ้งดับไฟเพื่อตัดกิ่งไม้ใกล้สายไฟฟ้าแรงสูง',
-    date: '2025-12-25',
-    startTime: '13:00',
-    endTime: '15:00'
-  },
-  {
-    id: 4,
-    location: 'ห้าแยกปากเกร็ด',
-    province: 'นนทบุรี',
-    detail: 'ย้ายเสาไฟฟ้าเพื่อขยายถนน',
-    date: '2025-12-28',
-    startTime: '10:00',
-    endTime: '18:00'
-  }
-];
+// 1. ตัวแปรเก็บข้อมูลจากฐานข้อมูล
+const rawNews = ref([]);
 
-// 2. ตัวแปรเก็บค่าจาก Filter
-const filters = ref({
+// 2. ตัวแปรเก็บค่าจาก Filter (ใช้ reactive เพื่อให้จัดการง่ายขึ้น)
+const filters = reactive({
   startTime: '',
   endTime: '',
   date: '',
   keyword: ''
 });
 
-// 3. ตัวแปรเก็บข้อมูลที่จะแสดงผล
-const displayedNews = ref([...allNewsData]);
+// 3. ฟังก์ชันดึงข้อมูลจาก Backend (Real-time)
+const fetchNews = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/news');
+    // แปลงข้อมูลจาก DB ให้เข้ากับรูปแบบที่ Template ต้องการ
+    rawNews.value = response.data.map(item => ({
+      id: item.id,
+      location: item.location,
+      province: 'นนทบุรี',
+      detail: item.description,
+      date: item.start_time.split('T')[0], // แยกวันที่ออกมาเพื่อใช้กรอง
+      startTime: new Date(item.start_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+      endTime: new Date(item.end_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+      fullStartTime: item.start_time, // เก็บไว้ใช้ฟังก์ชันฟอร์แมต
+      fullEndTime: item.end_time
+    }));
+  } catch (error) {
+    console.error("ดึงข้อมูลข่าวสารไม่สำเร็จ:", error);
+  }
+};
 
-// 4. ฟังก์ชันค้นหา
-const handleSearch = () => {
-  displayedNews.value = allNewsData.filter(item => {
-    // กรองวันที่ (ถ้าเลือกวันที่ ต้องตรงเป๊ะ)
-    const matchDate = !filters.value.date || item.date === filters.value.date;
+// 4. ฟังก์ชันค้นหาและกรองข้อมูล (Computed จะทำงานอัตโนมัติเมื่อ filters หรือ rawNews เปลี่ยน)
+const displayedNews = computed(() => {
+  return rawNews.value.filter(item => {
+    // กรองวันที่
+    const matchDate = !filters.date || item.date === filters.date;
 
-    // กรองสถานที่ (Keyword)
-    const matchKeyword = !filters.value.keyword || 
-      item.location.includes(filters.value.keyword) || 
-      item.detail.includes(filters.value.keyword);
+    // กรองสถานที่หรือรายละเอียด (Keyword)
+    const matchKeyword = !filters.keyword || 
+      item.location.includes(filters.keyword) || 
+      item.detail.includes(filters.keyword);
 
     // กรองเวลา
     let matchTime = true;
-    if (filters.value.startTime && item.startTime < filters.value.startTime) {
-      matchTime = false;
-    }
-    if (filters.value.endTime && item.endTime > filters.value.endTime) {
-      matchTime = false;
-    }
+    if (filters.startTime && item.startTime < filters.startTime) matchTime = false;
+    if (filters.endTime && item.endTime > filters.endTime) matchTime = false;
 
     return matchDate && matchKeyword && matchTime;
   });
+});
+
+// 5. ฟังก์ชันจัดการฟอร์มและล้างค่า
+const handleSearch = () => {
+  console.log('Searching with:', filters);
 };
 
-// 5. ฟังก์ชันล้างค่าค้นหา
 const resetFilters = () => {
-  filters.value = {
-    startTime: '',
-    endTime: '',
-    date: '',
-    keyword: ''
-  };
-  displayedNews.value = [...allNewsData];
+  filters.startTime = '';
+  filters.endTime = '';
+  filters.date = '';
+  filters.keyword = '';
 };
 
-// 6. ฟังก์ชันจัดรูปแบบวันเวลาแสดงผล
-const formatDateTime = (dateStr, timeStr) => {
-  if (!dateStr) return '';
+// 6. ฟังก์ชันจัดรูปแบบวันเวลาแสดงผล (ภาษาไทย พ.ศ.)
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return '';
   
-  const dateObj = new Date(dateStr);
+  const dateObj = new Date(dateTimeStr);
   const day = dateObj.getDate();
   const months = [
     "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
     "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
   ];
   const month = months[dateObj.getMonth()];
-  const year = dateObj.getFullYear() + 543; // แปลงเป็น พ.ศ.
+  const year = dateObj.getFullYear() + 543;
+  const time = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   
-  return `${day} ${month} ${year} ${timeStr}`;
+  return `${day} ${month} ${year} ${time}`;
 };
 
 onMounted(() => {
-  handleSearch();
+  fetchNews();
+  // ตั้งเวลาดึงข้อมูลใหม่ทุก 30 วินาทีเพื่อให้เป็น Real-time
+  setInterval(fetchNews, 30000);
 });
 </script>
 

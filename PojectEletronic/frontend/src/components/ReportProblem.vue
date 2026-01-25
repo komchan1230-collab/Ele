@@ -1,90 +1,48 @@
 <template>
-  <div class="page-container font-sarabun">
-    <header class="header">
-      <h1 
-        class="text-lg font-bold cursor-pointer hover:opacity-70 transition-opacity" 
-        @click="$emit('changePage', 'home')"
-        title="กลับหน้าหลัก"
-      >
-        แจ้งปัญหาไฟดับ (ในชุมชนเมเจอร์ปากเกร็ด)
-      </h1>
-      <div class="cursor-pointer">
-        <User class="w-8 h-8 text-black" />
-      </div>
-    </header>
-
-    <nav class="nav-bar">
-      <div class="nav-item active cursor-pointer">
-        <TriangleAlert class="icon-nav" /> 
-        <span>แจ้งปัญหา</span>
-      </div>
+  <div class="page-container font-sarabun p-4 md:p-8">
+    <div class="container-wrap max-w-6xl mx-auto flex flex-wrap gap-8">
       
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'news')">
-        <Megaphone class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดตามข่าวสาร</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'status')">
-        <MapPin class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งเตือนสถานะพื้นที่</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'contact')">
-        <MessageCircleMore class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดต่อเรา</span>
-      </div>
-    </nav>
-
-    <div class="container-wrap">
-      
-      <div class="left-panel">
+      <div class="left-panel flex-1 min-w-[300px]">
         <div class="map-header mb-2 flex justify-between items-center">
-          <h3 class="flex items-center gap-2 font-bold text-base">
-            <MapPin class="w-4 h-4" /> ตำแหน่ง *
+          <h3 class="flex items-center gap-2 font-bold text-lg">
+            <MapPin class="w-5 h-5 text-red-500" /> ปักหมุดตำแหน่งที่ไฟดับ *
           </h3>
-          <button class="btn-current-loc hover:opacity-80 transition" type="button" @click="getCurrentLocation">
+          <button 
+            class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-600 transition" 
+            type="button" 
+            @click="getCurrentLocation"
+          >
             ตำแหน่งปัจจุบัน
           </button>
         </div>
         
-        <div ref="mapContainer" id="map"></div>
+        <div ref="mapContainer" id="map" class="h-[400px] rounded-xl border-4 border-white shadow-lg z-0"></div>
         
-        <p class="mt-2 text-xs text-gray-600">
+        <p class="mt-2 text-sm text-gray-600">
           พิกัดที่เลือก: <span class="text-blue-600 font-bold">{{ lat.toFixed(6) }}, {{ lng.toFixed(6) }}</span>
         </p>
       </div>
 
-      <div class="right-panel">
-        <form @submit.prevent="submitForm" class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      <div class="right-panel flex-1 min-w-[300px]">
+        <form @submit.prevent="submitForm" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           
-          <div class="form-group mb-4">
-            <label class="block font-bold mb-1 text-sm">ชื่อ-นามสกุล *</label>
-            <input v-model="form.name" type="text" class="form-control" required>
-          </div>
-          
-          <div class="form-group mb-4">
-            <label class="block font-bold mb-1 text-sm">อายุ *</label>
-            <input v-model="form.age" type="number" class="form-control" required>
-          </div>
-          
-          <div class="form-group mb-4">
-            <label class="block font-bold mb-1 text-sm">เพศ *</label>
-            <div class="flex gap-6 mt-1">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="form.gender" value="male" class="w-4 h-4"> ชาย
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="form.gender" value="female" class="w-4 h-4"> หญิง
-              </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block font-bold mb-1 text-sm">ชื่อ-นามสกุล *</label>
+              <input v-model="form.name" type="text" class="form-control border p-2 w-full rounded-lg" placeholder="ระบุชื่อผู้แจ้ง" required>
+            </div>
+            <div>
+              <label class="block font-bold mb-1 text-sm">อายุ *</label>
+              <input v-model="form.age" type="number" class="form-control border p-2 w-full rounded-lg" required>
             </div>
           </div>
           
-          <div class="form-group mb-4">
+          <div class="mb-4">
             <label class="block font-bold mb-1 text-sm">เบอร์โทรศัพท์ *</label>
             <input 
               v-model="form.phone" 
               type="tel" 
-              class="form-control" 
+              class="form-control border p-2 w-full rounded-lg" 
               maxlength="10" 
               placeholder="0xxxxxxxxx" 
               @input="filterPhone"
@@ -92,57 +50,35 @@
             >
           </div>
           
-          <div class="form-group mb-4">
-            <label class="block font-bold mb-1 text-sm">รายละเอียด *</label>
-            <textarea v-model="form.details" class="form-control min-h-[80px]" rows="3"></textarea>
+          <div class="mb-4">
+            <label class="block font-bold mb-1 text-sm">รายละเอียดปัญหา *</label>
+            <textarea v-model="form.details" class="form-control border p-2 w-full rounded-lg min-h-[100px]" placeholder="เช่น เสาไฟหน้าบ้านดับ หรือดับทั้งซอย..." required></textarea>
           </div>
           
-          <div class="form-group mb-4">
-            <label class="block font-bold mb-1 text-sm">
-              แนบไฟล์รูปภาพ (เลือกได้หลายรูป)
-              <span class="text-xs font-normal text-gray-500 ml-1">{{ previewImages.length }} รูป</span>
-            </label>
-            
+          <div class="mb-6">
+            <label class="block font-bold mb-1 text-sm">แนบรูปภาพพิกัดที่เสีย (ถ้ามี)</label>
             <input 
               type="file" 
-              class="form-control border-dashed text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
               multiple 
               accept="image/*"
               @change="handleFileUpload"
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             >
             
-            <div class="image-preview-container mt-3 p-2 border border-dashed border-gray-300 rounded bg-gray-50 min-h-[100px] flex flex-wrap gap-3">
-              
-              <div v-if="previewImages.length === 0" class="w-full h-full flex items-center justify-center text-gray-400 text-xs italic min-h-[80px]">
-                ยังไม่ได้เลือกรูปภาพ (กดเลือกไฟล์ด้านบน)
+            <div class="flex flex-wrap gap-2 mt-3">
+              <div v-for="(img, index) in previewImages" :key="index" class="relative w-20 h-20">
+                <img :src="img" class="w-full h-full object-cover rounded-lg border" />
+                <button @click="removeImage(index)" type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✕</button>
               </div>
-              
-              <div 
-                v-for="(imgSrc, index) in previewImages" 
-                :key="index" 
-                class="relative w-24 h-24 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm group"
-              >
-                <img :src="imgSrc" class="w-full h-full object-cover" />
-                
-                <button 
-                  type="button"
-                  @click="removeImage(index)"
-                  class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100 transition shadow-md"
-                >
-                  ✕
-                </button>
-              </div>
-
             </div>
           </div>
 
-          <div class="flex justify-end mt-6">
-             <button type="submit" class="btn-submit hover:bg-[#70d6a5] transition transform active:scale-95">ส่งข้อมูล</button>
-          </div>
+          <button type="submit" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition shadow-md active:scale-95">
+            ส่งข้อมูลแจ้งเหตุ
+          </button>
         </form>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -150,20 +86,19 @@
 import { ref, onMounted } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { User, TriangleAlert, Megaphone, MapPin, MessageCircleMore } from 'lucide-vue-next';
+import { MapPin } from 'lucide-vue-next';
 import axios from 'axios';
 
-// กำหนด Event สำหรับเปลี่ยนหน้า
 const emit = defineEmits(['changePage']);
 
-// ตัวแปรสำหรับแผนที่
+// 1. ตัวแปรสำหรับแผนที่และพิกัด
 const mapContainer = ref(null);
 const map = ref(null);
 const marker = ref(null);
-const lat = ref(13.9129);
+const lat = ref(13.9129); // พิกัดเริ่มต้น (เมเจอร์ปากเกร็ด)
 const lng = ref(100.4996);
 
-// ตัวแปรสำหรับฟอร์ม (ย้ายมาไว้ด้านบนเพื่อความชัดเจน)
+// 2. ตัวแปรสำหรับฟอร์มและไฟล์
 const form = ref({
   name: '',
   age: '',
@@ -171,46 +106,17 @@ const form = ref({
   phone: '',
   details: ''
 });
-
-const previewImages = ref([]);
-const fileObjects = ref([]);
+const previewImages = ref([]); // สำหรับแสดงรูปตัวอย่าง
+const fileObjects = ref([]);  // สำหรับเก็บไฟล์จริงส่งไป Backend
 
 onMounted(() => {
   initMap();
 });
 
-// ฟังก์ชันส่งข้อมูลไปยัง Backend (มีเพียงอันเดียว)
-const submitForm = async () => {
-  try {
-    const payload = {
-      reporter_name: form.value.name,
-      age: form.value.age,
-      gender: form.value.gender,
-      phone: form.value.phone,
-      details: form.value.details,
-      latitude: lat.value,
-      longitude: lng.value
-    };
-
-    // ส่งข้อมูลไปที่ Backend พอร์ต 3000 ที่เราจะสร้าง
-    const response = await axios.post('http://localhost:3000/api/reports', payload);
-    
-    if (response.status === 201) {
-      alert('บันทึกข้อมูลแจ้งปัญหาเรียบร้อยแล้ว');
-      emit('changePage', 'status'); // ย้ายไปหน้าแสดงสถานะ
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    alert('ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบว่าได้เปิด Backend หรือยัง');
-  }
-};
-
-// ฟังก์ชันสร้างแผนที่
+// 3. ฟังก์ชันจัดการแผนที่
 const initMap = () => {
   map.value = L.map(mapContainer.value).setView([lat.value, lng.value], 16);
-  
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
     attribution: '© OpenStreetMap'
   }).addTo(map.value);
 
@@ -218,69 +124,75 @@ const initMap = () => {
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
     iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+    iconAnchor: [12, 41]
   });
   L.Marker.prototype.options.icon = DefaultIcon;
 
   marker.value = L.marker([lat.value, lng.value], { draggable: true }).addTo(map.value);
-  marker.value.bindPopup("<b>จุดที่แจ้งปัญหา</b><br>ลากหรือคลิกเพื่อเปลี่ยนจุด").openPopup();
-
-  map.value.on('click', (e) => {
-    updatePosition(e.latlng.lat, e.latlng.lng);
-  });
-
-  marker.value.on('dragend', (e) => {
-    const position = marker.value.getLatLng();
-    updatePosition(position.lat, position.lng);
+  
+  // คลิกเพื่อย้ายหมุด
+  map.value.on('click', (e) => updatePosition(e.latlng.lat, e.latlng.lng));
+  // ลากเพื่อย้ายหมุด
+  marker.value.on('dragend', () => {
+    const pos = marker.value.getLatLng();
+    updatePosition(pos.lat, pos.lng);
   });
 };
 
-const updatePosition = (newLat, newLng) => {
-  lat.value = newLat;
-  lng.value = newLng;
-  marker.value.setLatLng([newLat, newLng]);
-  map.value.panTo([newLat, newLng]);
+const updatePosition = (nLat, nLng) => {
+  lat.value = nLat;
+  lng.value = nLng;
+  marker.value.setLatLng([nLat, nLng]);
 };
 
-const getCurrentLocation = () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      updatePosition(position.coords.latitude, position.coords.longitude);
-      marker.value.bindPopup("ตำแหน่งปัจจุบันของคุณ").openPopup();
-    }, () => {
-      alert("ไม่สามารถเข้าถึงตำแหน่งได้");
+// 4. ฟังก์ชันส่งข้อมูล (สำคัญ: ใช้ FormData)
+const submitForm = async () => {
+  try {
+    const formData = new FormData();
+    // ชื่อตัวแปรฝั่งซ้ายต้องตรงกับที่ Backend รอรับ
+    formData.append('reporter_name', form.value.name);
+    formData.append('age', form.value.age);
+    formData.append('gender', form.value.gender);
+    formData.append('phone', form.value.phone);
+    formData.append('details', form.value.details);
+    formData.append('latitude', lat.value);
+    formData.append('longitude', lng.value);
+    
+    // แนบไฟล์รูปภาพ
+    fileObjects.value.forEach((file) => {
+      formData.append('images', file);
     });
-  } else {
-    alert("เบราว์เซอร์ไม่รองรับ");
+
+    const response = await axios.post('http://localhost:3000/api/reports', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    if (response.status === 201) {
+      alert('แจ้งเหตุสำเร็จ! ข้อมูลและพิกัดถูกส่งเรียบร้อยแล้ว');
+      emit('changePage', 'status');
+    }
+  } catch (error) {
+    console.error(error);
+    alert('ส่งข้อมูลไม่สำเร็จ กรุณาเช็คว่า Backend รันอยู่ที่พอร์ต 3000');
   }
 };
 
 // ฟังก์ชันจัดการรูปภาพ
 const handleFileUpload = (event) => {
   const files = event.target.files;
-  if (files && files.length > 0) {
+  if (files) {
     Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return;
       fileObjects.value.push(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        previewImages.value.push(e.target.result);
-      };
+      reader.onload = (e) => previewImages.value.push(e.target.result);
       reader.readAsDataURL(file);
     });
   }
-  event.target.value = ''; 
 };
 
-const removeImage = (index) => {
-  previewImages.value.splice(index, 1);
-  fileObjects.value.splice(index, 1);
-};
-
-const filterPhone = (e) => {
-  form.value.phone = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+const removeImage = (i) => {
+  previewImages.value.splice(i, 1);
+  fileObjects.value.splice(i, 1);
 };
 </script>
 

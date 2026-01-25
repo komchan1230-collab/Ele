@@ -1,40 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#e9e6f6] font-sarabun text-[#333]">
     
-    <header class="bg-[#87CEEB] px-5 py-4 flex justify-between items-center text-black shadow-sm">
-      <h1 
-        class="text-lg font-bold m-0 cursor-pointer hover:opacity-70 transition-opacity" 
-        @click="$emit('changePage', 'home')"
-        title="กลับหน้าหลัก"
-      >
-        แจ้งปัญหาไฟดับ (ในชุมชนเมเจอร์ปากเกร็ด)
-      </h1>
-      <div class="cursor-pointer hover:opacity-70 transition" @click="$emit('changePage', 'profile')">
-        <User class="w-8 h-8 text-black" />
-      </div>
-    </header>
-
-    <nav class="bg-[#87CEEB] flex justify-around pb-2 shadow-md relative z-10">
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'report')">
-        <TriangleAlert class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งปัญหา</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'news')">
-        <Megaphone class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดตามข่าวสาร</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'status')">
-        <MapPin class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งเตือนสถานะพื้นที่</span>
-      </div>
-      
-      <div class="nav-item active cursor-pointer">
-        <MessageCircleMore class="icon-nav" /> 
-        <span>ติดต่อเรา</span>
-      </div>
-    </nav>
+   
 
     <div class="content flex justify-center p-4 md:p-8">
       <div class="panel bg-white rounded-lg shadow-sm w-full max-w-[1050px] p-6">
@@ -87,7 +54,7 @@
               type="button" 
               @click="submitForm"
             >
-              ส่งข้อมูล
+            
             </button>
           </div>
 
@@ -106,6 +73,11 @@ import {
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['changePage']);
+
+// เพิ่มฟังก์ชันนี้ใน <script setup> ของ ContactUs.vue
+const goToAdmin = () => {
+  emit('changePage', 'dashboard');
+};
 
 // State ของฟอร์ม
 const form = ref({
