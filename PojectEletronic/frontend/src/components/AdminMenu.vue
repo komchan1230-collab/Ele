@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { 
   TriangleAlert, MapPin, ChevronRight, BarChart3, 
-  User as UserIcon, Phone, Clock, Trash2, X, Send, CheckCircle, ExternalLink
+  User as UserIcon, Clock, Trash2, X, Send, CheckCircle, Smartphone
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['changePage']);
@@ -12,7 +12,7 @@ const selectedReport = ref(null);
 const isModalOpen = ref(false);
 let timer = null;
 
-// 1. ฟังก์ชันดึงข้อมูลจาก Backend
+// 1. ดึงข้อมูล
 const fetchAdminData = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/admin/reports');
@@ -22,9 +22,9 @@ const fetchAdminData = async () => {
   }
 };
 
-// 2. ฟังก์ชันแจ้งเจ้าหน้าที่ผ่าน LINE Messaging API (ปุ่มที่ 1)
+// 2. แจ้ง LINE (ปุ่มเดียวที่เราจะเก็บไว้)
 const notifyOfficer = async (report) => {
-  // จัดรูปแบบข้อความแจ้งเหตุ
+  // จัดรูปแบบข้อความ
   const message = 
     `📢 แจ้งเหตุไฟดับใหม่!\n` +
     `👤 ผู้แจ้ง: ${report.reporter_name}\n` +
@@ -33,27 +33,30 @@ const notifyOfficer = async (report) => {
     `📍 พิกัด: https://www.google.com/maps?q=${report.latitude},${report.longitude}`;
 
   try {
-    // ส่งข้อความไปที่ API /line-send ใน server.js
-    const response = await axios.post('http://localhost:3000/api/admin/line-send', { message });
+    // ส่งข้อมูลไปหลังบ้าน (พร้อม ID เพื่อสร้างปุ่มรับงาน)
+    const response = await axios.post('http://localhost:3000/api/admin/line-send', { 
+      message: message,
+      reportId: report.id,
+      lat: report.latitude,
+      lng: report.longitude
+    });
+
     if (response.data.success) {
-      alert("✅ ส่งข้อมูลเข้ากลุ่ม LINE เจ้าหน้าที่เรียบร้อยแล้ว!");
+      alert("✅ ส่งเข้า LINE แล้ว! รอเจ้าหน้าที่กดรับงาน");
+      // อัปเดตสถานะเบื้องต้น
+      await updateStatus(report.id, 'แจ้งเจ้าหน้าที่แล้ว');
     }
   } catch (error) {
-    // แจ้งเตือนหาก Token หรือ Group ID ใน server.js ยังไม่ถูกต้อง
-    alert("❌ ส่ง LINE ไม่สำเร็จ กรุณาเช็ค Token หรือ Group ID ใน server.js");
+    alert("❌ ส่งไม่สำเร็จ");
   }
 };
 
-// 3. ฟังก์ชันอัปเดตสถานะงาน (ปุ่มที่ 2 และ 3)
+// ฟังก์ชันอัปเดตสถานะ (ใช้ภายใน)
 const updateStatus = async (id, newStatus) => {
   try {
-    await axios.patch(`http://localhost:3000/api/admin/reports/${id}`, { 
-      status: newStatus 
-    });
-    fetchAdminData(); // โหลดข้อมูลใหม่เพื่อแสดงสีสถานะล่าสุด
-  } catch (error) {
-    alert("ไม่สามารถเปลี่ยนสถานะได้");
-  }
+    await axios.patch(`http://localhost:3000/api/admin/reports/${id}`, { status: newStatus });
+    fetchAdminData();
+  } catch (error) { console.error("Update error", error); }
 };
 
 const openDetails = (report) => { selectedReport.value = report; isModalOpen.value = true; };
@@ -77,7 +80,7 @@ const formatDate = (dateStr) => {
 
 onMounted(() => { 
   fetchAdminData(); 
-  timer = setInterval(fetchAdminData, 10000); // อัปเดตข้อมูลทุก 10 วินาที
+  timer = setInterval(fetchAdminData, 3000); // อัปเดตเร็วขึ้นเพื่อให้เห็นสถานะเปลี่ยนทันทีที่กดใน LINE
 });
 
 onUnmounted(() => clearInterval(timer));
@@ -119,38 +122,41 @@ onUnmounted(() => clearInterval(timer));
         <div class="px-5 py-4 bg-gray-50/50 border-t border-gray-100 flex flex-col gap-3">
           <div class="flex justify-between items-center">
             <span :class="{
-              'bg-yellow-100 text-yellow-700 border-yellow-200': item.status === 'pending' || item.status === 'รอดำเนินการ',
-              'bg-blue-100 text-blue-700 border-blue-200': item.status === 'แจ้งเจ้าหน้าที่แล้ว',
+              'bg-yellow-100 text-yellow-700 border-yellow-200': item.status === 'รอดำเนินการ',
+              'bg-orange-100 text-orange-700 border-orange-200 animate-pulse': item.status === 'แจ้งเจ้าหน้าที่แล้ว',
+              'bg-blue-100 text-blue-700 border-blue-200': item.status === 'เจ้าหน้าที่รับเรื่องแล้ว',
               'bg-green-100 text-green-700 border-green-200': item.status === 'แก้ไขเสร็จสิ้นแล้ว'
-            }" class="px-3 py-1 rounded-full text-[10px] font-bold border uppercase">
-              {{ item.status === 'pending' ? 'รอดำเนินการ' : item.status }}
+            }" class="px-3 py-1 rounded-full text-[10px] font-bold border uppercase flex items-center gap-1">
+               {{ item.status }}
             </span>
             <button @click="openDetails(item)" class="text-blue-600 hover:text-blue-800 text-xs font-bold flex items-center gap-1 transition">รายละเอียด <ChevronRight class="w-4 h-4" /></button>
           </div>
 
           <div class="flex flex-col gap-2">
-            <div v-if="item.status === 'pending' || item.status === 'รอดำเนินการ'" class="flex gap-2">
-              <button @click="notifyOfficer(item)" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow-sm transition">
-                <Send class="w-3 h-3" /> 1. แจ้งเจ้าหน้าที่ (LINE)
-              </button>
-              <button @click="updateStatus(item.id, 'แจ้งเจ้าหน้าที่แล้ว')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold py-2 rounded-lg shadow-sm transition">
-                2. เจ้าหน้าที่รับเรื่อง
-              </button>
-            </div>
-
+            
             <button 
-              v-else-if="item.status === 'แจ้งเจ้าหน้าที่แล้ว'"
-              @click="updateStatus(item.id, 'แก้ไขเสร็จสิ้นแล้ว')"
-              class="w-full bg-green-600 hover:bg-green-700 text-white text-[11px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg transition"
+              v-if="item.status === 'รอดำเนินการ'" 
+              @click="notifyOfficer(item)" 
+              class="w-full bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-sm transition"
             >
-              <CheckCircle class="w-4 h-4" /> 3. เจ้าหน้าที่แก้ไขเสร็จสิ้น
+              <Send class="w-4 h-4" /> แจ้งเจ้าหน้าที่ (LINE)
             </button>
 
-            <div v-else class="text-center py-1 text-green-600 text-[11px] font-bold flex items-center justify-center gap-1 bg-green-50 rounded-lg border border-green-100">
+            <div v-else-if="item.status === 'แจ้งเจ้าหน้าที่แล้ว'" class="text-center py-2 text-orange-400 text-xs font-bold bg-orange-50 rounded-lg border border-orange-100 flex items-center justify-center gap-2">
+               <Smartphone class="w-4 h-4 animate-bounce" /> รอเจ้าหน้าที่กดรับงานใน LINE...
+            </div>
+
+            <div v-else-if="item.status === 'เจ้าหน้าที่รับเรื่องแล้ว'" class="text-center py-2 text-blue-500 text-xs font-bold bg-blue-50 rounded-lg border border-blue-100 flex items-center justify-center gap-2">
+               <Smartphone class="w-4 h-4" /> เจ้าหน้าที่กำลังซ่อม (รอปิดงานผ่าน LINE)
+            </div>
+
+            <div v-else class="text-center py-2 text-green-600 text-[11px] font-bold flex items-center justify-center gap-1 bg-green-50 rounded-lg border border-green-100">
               <CheckCircle class="w-4 h-4" /> ดำเนินการแก้ไขเรียบร้อยแล้ว
             </div>
+
           </div>
         </div>
+
       </div>
     </div>
 
@@ -170,14 +176,10 @@ onUnmounted(() => clearInterval(timer));
             <p class="text-orange-700 font-bold text-lg">{{ selectedReport.reason || 'ไม่ระบุ' }}</p>
           </div>
           <div v-if="selectedReport.images" class="space-y-3">
-            <p class="font-bold text-gray-800">รูปภาพหลักฐาน ({{ selectedReport.images.split(',').length }} รูป)</p>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <img 
-                v-for="(img, idx) in selectedReport.images.split(',')" :key="idx" 
-                :src="`http://localhost:3000/uploads/${img.trim()}`" 
-                class="w-full h-32 object-cover rounded-2xl border border-gray-200 shadow-sm hover:brightness-95 transition cursor-zoom-in" 
-              />
-            </div>
+             <p class="font-bold text-gray-800">รูปภาพหลักฐาน</p>
+             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+               <img v-for="(img, idx) in selectedReport.images.split(',')" :key="idx" :src="`http://localhost:3000/uploads/${img.trim()}`" class="w-full h-32 object-cover rounded-xl border border-gray-200" />
+             </div>
           </div>
         </div>
       </div>

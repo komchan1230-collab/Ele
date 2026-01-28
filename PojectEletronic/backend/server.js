@@ -26,41 +26,146 @@ app.use('/uploads', express.static('uploads'));
 
 // --- ส่วนตั้งค่า LINE Messaging API ---
 // ใช้ Token ตัวล่าสุดที่คุณส่งมา (ล้างค่าช่องว่างอัตโนมัติ)
-const CHANNEL_ACCESS_TOKEN = 'LGvc7OMyDD/Kr4dq/QGZN2E5W+UKq/CtEqSEq8cEUkZFfC1iRV2Ts9G+idP5UWVaj2/roTqb2gTiWCzC0jC6anV+gO18MAO8peGL5g66GyOrIYajIX1OXWz6H3vulysxkTDKd1PzSffe7DXrcb6CCgdB04t89/1O/w1cDnyilFU='.trim();
+const CHANNEL_ACCESS_TOKEN = 'TQvwk7oebF/bEmCjxY6J/DvVHEn7rNpWLitrTbTwRHjbiqTUj74t2eZVTJmsIU9vj2/roTqb2gTiWCzC0jC6anV+gO18MAO8peGL5g66GyNuV5QLlHiM/3ndLx9R+UAvxwmw/hE97krtv6+1cKiHJQdB04t89/1O/w1cDnyilFU='.trim();
 
 // *** เมื่อคุณพิมพ์ในกลุ่มแล้วได้ Group ID จาก Terminal ให้นำมาวางตรงนี้ ***
 // ในไฟล์ server.js
 const TARGET_GROUP_ID = 'Cd873f437a3bc1690a68bfb17a6c58bbb'; // วางรหัสที่ได้มาตรงนี้ครับ
 
 // 2. API สำหรับส่ง LINE (เรียกใช้จากหน้า AdminMenu.vue)
+// แก้ไขเฉพาะก้อนข้อมูล messages ใน server.js
 app.post('/api/admin/line-send', async (req, res) => {
-    const { message } = req.body;
+   const { message, reportId, lat, lng } = req.body; 
+
     try {
         await axios.post('https://api.line.me/v2/bot/message/push', {
             to: TARGET_GROUP_ID,
-            messages: [{ type: 'text', text: message }]
+            messages: [{
+                type: "flex", // เปลี่ยนจาก text เป็น flex
+                altText: "มีแจ้งเหตุเข้ามาใหม่! (กรุณาดูในมือถือ)",
+                contents: {
+                    type: "bubble",
+                    body: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            // ส่วนแสดงข้อความเดิมของคุณ
+                            { type: "text", text: message, wrap: true }
+                        ]
+                    },
+                    footer: {
+                        type: "box",
+                        layout: "vertical",
+                        spacing: "sm",
+                        contents: [
+                            // --- ปุ่มที่ 1: รับเรื่อง (Postback) ---
+                            {
+                                type: "button",
+                                style: "primary",
+                                color: "#00b900", // สีเขียว LINE
+                                action: {
+                                    type: "postback",
+                                    label: "✅ รับเรื่องทันที",
+                                    // ส่งค่ากลับมาบอก Server ว่าใครกดงาน ID ไหน
+                                    data: `action=accept&id=${reportId}` 
+                                }
+                            },
+                            // --- ปุ่มที่ 2: ดูแผนที่ (URI) ---
+                            {
+                                type: "button",
+                                style: "secondary",
+                                action: {
+                                    type: "uri",
+                                    label: "📍 ดูแผนที่",
+                                    // ลิงก์ไป Google Maps
+                                    uri: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+                                }
+                            }
+                        ]
+                    }
+                }
+            }]
         }, {
-            headers: {
+            headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}`
+                'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` 
             }
         });
-        res.json({ success: true, message: 'ส่งข้อมูลเข้า LINE สำเร็จ' });
+        res.json({ success: true });
     } catch (error) {
-        console.error("LINE API Error:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: "ส่ง LINE ไม่สำเร็จ ตรวจสอบ Group ID ใน server.js" });
+        console.error("LINE Error:", error.response?.data || error.message);
+        res.status(500).json({ error: "ส่ง LINE ไม่สำเร็จ" });
     }
 });
 
 // 3. Webhook สำหรับดักจับ Group ID (ดูค่าใน Terminal VS Code)
-app.post('/api/line/webhook', (req, res) => {
+// แก้ไข API Webhook ใน server.js
+app.post('/api/line/webhook', async (req, res) => {
     const events = req.body.events;
-    if (events && events.length > 0) {
-        const event = events[0];
-        if (event.source && event.source.type === 'group') {
-            console.log("-----------------------------------------");
-            console.log("พบ Group ID ของคุณ: ", event.source.groupId);
-            console.log("-----------------------------------------");
+    if (!events || events.length === 0) return res.sendStatus(200);
+
+    for (const event of events) {
+        if (event.type === 'postback') {
+            const data = new URLSearchParams(event.postback.data);
+            const action = data.get('action');
+            const reportId = data.get('id');
+
+            // ---------------------------------------------
+            // 1. กรณีเจ้าหน้าที่กด "รับเรื่องทันที" (ปุ่มเขียว)
+            // ---------------------------------------------
+            if (action === 'accept' && reportId) {
+                try {
+                    // อัปเดตสถานะเป็น "เจ้าหน้าที่รับเรื่องแล้ว"
+                    await db.query('UPDATE reports SET status = ? WHERE id = ?', ['เจ้าหน้าที่รับเรื่องแล้ว', reportId]);
+                    
+                    if (event.replyToken) {
+                        // 🔥 ส่งปุ่มใหม่กลับไป: "ซ่อมเสร็จแล้ว"
+                        await axios.post('https://api.line.me/v2/bot/message/reply', {
+                            replyToken: event.replyToken,
+                            messages: [{
+                                type: "flex",
+                                altText: "กำลังดำเนินการ...",
+                                contents: {
+                                    type: "bubble",
+                                    body: {
+                                        type: "box", layout: "vertical",
+                                        contents: [
+                                            { type: "text", text: `🛠️ รับงาน ID: ${reportId} แล้ว`, weight: "bold", color: "#1DB446", size: "lg" },
+                                            { type: "text", text: "เมื่อดำเนินการแก้ไขเสร็จสิ้น กรุณากดปุ่มด้านล่างเพื่อปิดงาน", size: "xs", color: "#aaaaaa", wrap: true, margin: "md" }
+                                        ]
+                                    },
+                                    footer: {
+                                        type: "box", layout: "vertical",
+                                        contents: [
+                                            { 
+                                                type: "button", style: "primary", color: "#00b900", height: "sm",
+                                                action: { type: "postback", label: "✅ ซ่อมเสร็จแล้ว / ปิดงาน", data: `action=finish&id=${reportId}` } 
+                                            }
+                                        ]
+                                    }
+                                }
+                            }]
+                        }, { headers: { 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` } });
+                    }
+                } catch (err) { console.error(err); }
+            }
+
+            // ---------------------------------------------
+            // 2. กรณีเจ้าหน้าที่กด "ซ่อมเสร็จแล้ว" (ปุ่มใหม่ที่เราเพิ่งสร้าง)
+            // ---------------------------------------------
+            if (action === 'finish' && reportId) {
+                try {
+                    // อัปเดตสถานะเป็น "แก้ไขเสร็จสิ้นแล้ว" -> รายการจะหายไปจากหน้า AreaStatus ทันที
+                    await db.query('UPDATE reports SET status = ? WHERE id = ?', ['แก้ไขเสร็จสิ้นแล้ว', reportId]);
+                    
+                    if (event.replyToken) {
+                        await axios.post('https://api.line.me/v2/bot/message/reply', {
+                            replyToken: event.replyToken,
+                            messages: [{ type: 'text', text: `🎉 ปิดงาน ID: ${reportId} เรียบร้อย! ขอบคุณครับ` }]
+                        }, { headers: { 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` } });
+                    }
+                } catch (err) { console.error(err); }
+            }
         }
     }
     res.sendStatus(200);
