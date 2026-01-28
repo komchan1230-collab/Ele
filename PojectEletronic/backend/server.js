@@ -29,7 +29,8 @@ app.use('/uploads', express.static('uploads'));
 const CHANNEL_ACCESS_TOKEN = 'LGvc7OMyDD/Kr4dq/QGZN2E5W+UKq/CtEqSEq8cEUkZFfC1iRV2Ts9G+idP5UWVaj2/roTqb2gTiWCzC0jC6anV+gO18MAO8peGL5g66GyOrIYajIX1OXWz6H3vulysxkTDKd1PzSffe7DXrcb6CCgdB04t89/1O/w1cDnyilFU='.trim();
 
 // *** เมื่อคุณพิมพ์ในกลุ่มแล้วได้ Group ID จาก Terminal ให้นำมาวางตรงนี้ ***
-const TARGET_GROUP_ID = 'ใส่_GROUP_ID_ที่ได้จาก_Terminal_ตรงนี้'; 
+// ในไฟล์ server.js
+const TARGET_GROUP_ID = 'Cd873f437a3bc1690a68bfb17a6c58bbb'; // วางรหัสที่ได้มาตรงนี้ครับ
 
 // 2. API สำหรับส่ง LINE (เรียกใช้จากหน้า AdminMenu.vue)
 app.post('/api/admin/line-send', async (req, res) => {
