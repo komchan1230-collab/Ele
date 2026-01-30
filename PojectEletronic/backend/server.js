@@ -34,7 +34,7 @@ const TARGET_GROUP_ID = 'Cd873f437a3bc1690a68bfb17a6c58bbb'; // Group ID ขอ�
 app.post('/api/admin/line-send', async (req, res) => {
     const { message, reportId, lat, lng } = req.body;
     
-    // สร้าง Flex Message สำหรับ "แจ้งงานใหม่"
+    // สร้าง Flex Message
     const flexMessage = {
         type: "flex",
         altText: "มีรายการแจ้งเหตุไฟดับใหม่!",
@@ -53,22 +53,22 @@ app.post('/api/admin/line-send', async (req, res) => {
             footer: {
                 type: "box", layout: "vertical", spacing: "sm",
                 contents: [
-                    // ปุ่มที่ 1: รับเรื่อง (ส่ง action=accept)
+                    // ปุ่มที่ 1: รับเรื่อง (ใช้ postback เพื่อส่งค่าเข้า Server ไม่เปิดลิงก์)
                     {
                         type: "button", style: "primary", color: "#00b900", height: "sm",
                         action: { 
                             type: "postback", 
                             label: "✅ รับเรื่องทันที", 
-                            data: `action=accept&id=${reportId}`  // <--- เช็คตรงนี้ต้องเป็น accept
+                            data: `action=accept&id=${reportId}` 
                         }
                     },
-                    // ปุ่มที่ 2: ดูแผนที่
+                    // ปุ่มที่ 2: ดูแผนที่ (แก้ลิงก์ให้ถูกต้อง)
                     {
                         type: "button", style: "secondary", height: "sm",
                         action: { 
                             type: "uri", 
                             label: "📍 ดูแผนที่", 
-                            uri: `http://googleusercontent.com/maps.google.com/?q=${lat},${lng}` 
+                            uri: `https://maps.google.com/?q=${lat},${lng}` 
                         }
                     }
                 ]
