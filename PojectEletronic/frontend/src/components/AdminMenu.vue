@@ -130,7 +130,7 @@
           <div v-if="selectedReport.images" class="space-y-3">
              <p class="font-bold text-gray-800 flex items-center gap-2"><ImageIcon class="w-5 h-5 text-gray-400" /> รูปภาพหลักฐาน</p>
              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-               <img v-for="(img, idx) in selectedReport.images.split(',')" :key="idx" :src="`http://localhost:3000/uploads/${img.trim()}`" class="w-full h-32 object-cover rounded-xl border border-gray-200 cursor-pointer hover:opacity-90 transition" @click="window.open(`http://localhost:3000/uploads/${img.trim()}`, '_blank')" />
+               <img v-for="(img, idx) in selectedReport.images.split(',')" :key="idx" :src="`https://major-backend-dc3d.onrender.com/uploads/${img.trim()}`" class="w-full h-32 object-cover rounded-xl border border-gray-200 cursor-pointer hover:opacity-90 transition" @click="window.open(`https://major-backend-dc3d.onrender.com/uploads/${img.trim()}`, '_blank')" />
              </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ let timer = null;
 // 1. ดึงข้อมูล
 const fetchAdminData = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/admin/reports');
+    const response = await axios.get('https://major-backend-dc3d.onrender.com/api/admin/reports');
     adminReports.value = response.data;
   } catch (error) {
     console.error("ดึงข้อมูลไม่สำเร็จ:", error);
@@ -177,7 +177,7 @@ const notifyOfficer = async (report) => {
     `⚠️ สาเหตุ: ${report.reason || 'ไม่ระบุ'}`;
 
   try {
-    const response = await axios.post('http://localhost:3000/api/admin/line-send', { 
+    const response = await axios.post('https://major-backend-dc3d.onrender.com/api/admin/line-send', { 
       message: message,
       reportId: report.id,
       lat: report.latitude,
@@ -195,7 +195,7 @@ const notifyOfficer = async (report) => {
 
 const updateStatus = async (id, newStatus) => {
   try {
-    await axios.patch(`http://localhost:3000/api/admin/reports/${id}`, { status: newStatus });
+    await axios.patch(`https://major-backend-dc3d.onrender.com/api/admin/reports/${id}`, { status: newStatus });
     fetchAdminData();
   } catch (error) { console.error("Update error", error); }
 };
@@ -206,7 +206,7 @@ const closeDetails = () => { isModalOpen.value = false; selectedReport.value = n
 const deleteReport = async (id) => {
   if (confirm('ยืนยันที่จะลบรายการนี้? (ไม่สามารถกู้คืนได้)')) {
     try {
-      await axios.delete(`http://localhost:3000/api/admin/reports/${id}`);
+      await axios.delete(`https://major-backend-dc3d.onrender.com/api/admin/reports/${id}`);
       fetchAdminData();
     } catch (error) { alert('ลบไม่สำเร็จ'); }
   }

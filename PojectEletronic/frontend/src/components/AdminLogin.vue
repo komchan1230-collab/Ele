@@ -85,7 +85,7 @@ const handleLogin = async () => {
   errorMsg.value = '';
 
   try {
-    const res = await axios.post('http://localhost:3000/api/login', {
+    const res = await axios.post('https://major-backend-dc3d.onrender.com/api/login', {
       username: username.value,
       password: password.value
     });

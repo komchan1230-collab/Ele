@@ -138,7 +138,7 @@ const form = reactive({
 const submitForm = async () => {
   isSubmitting.value = true;
   try {
-    const res = await axios.post('http://localhost:3000/api/contact', form);
+    const res = await axios.post('https://major-backend-dc3d.onrender.com/api/contact', form);
     
     if (res.data.success) {
       Swal.fire({

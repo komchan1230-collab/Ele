@@ -323,7 +323,7 @@ const submitForm = async () => {
     
     fileObjects.value.forEach((file) => formData.append('images', file));
 
-    const response = await axios.post('http://localhost:3000/api/reports', formData, {
+    const response = await axios.post('https://major-backend-dc3d.onrender.com/api/reports', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     

@@ -161,7 +161,7 @@ const doughnutOptions = { responsive: true, maintainAspectRatio: false };
 
 const fetchData = async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/admin/reports?t=${Date.now()}`);
+    const res = await axios.get(`https://major-backend-dc3d.onrender.com/api/admin/reports?t=${Date.now()}`);
     const data = res.data;
     calculateStats(data);
     prepareCharts(data);

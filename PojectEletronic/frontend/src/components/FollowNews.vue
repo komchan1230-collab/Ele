@@ -173,7 +173,7 @@ const filters = reactive({ date: '', reason: '', keyword: '' });
 // ดึงข้อมูล
 const fetchReports = async () => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/admin/reports?t=${Date.now()}`);
+    const response = await axios.get(`https://major-backend-dc3d.onrender.com/api/admin/reports?t=${Date.now()}`);
     rawReports.value = response.data;
   } catch (error) { console.error(error); }
 };

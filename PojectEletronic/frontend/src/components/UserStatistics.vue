@@ -106,7 +106,7 @@ const barOptions = {
 // ดึงข้อมูล
 const fetchData = async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/admin/reports?t=${Date.now()}`);
+    const res = await axios.get(`https://major-backend-dc3d.onrender.com/api/admin/reports?t=${Date.now()}`);
     // กรองเฉพาะงานที่เสร็จแล้ว
     const finished = res.data.filter(item => item.status === 'แก้ไขเสร็จสิ้นแล้ว');
     rawData.value = finished;
