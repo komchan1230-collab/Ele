@@ -1,209 +1,192 @@
 <template>
-  <div class="min-h-screen bg-[#eef2f9] font-sarabun text-[#333]">
+  <div class="min-h-screen bg-[#f8fafc] font-sarabun p-4 md:p-8">
     
-    <header class="bg-[#87CEEB] px-5 py-4 flex justify-between items-center text-black shadow-sm">
-      <h1 
-        class="text-lg font-bold m-0 cursor-pointer hover:opacity-70 transition-opacity" 
-        @click="$emit('changePage', 'home')"
-        title="กลับหน้าหลัก"
-      >
-        แจ้งปัญหาไฟดับ (ในชุมชนเมเจอร์ปากเกร็ด)
-      </h1>
-      <div class="cursor-pointer">
-        <User class="w-8 h-8 text-black" />
-      </div>
-    </header>
-
-    <nav class="bg-[#87CEEB] flex justify-around pb-2 shadow-md relative z-10">
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'report')">
-        <TriangleAlert class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งปัญหา</span>
-      </div>
+    <div class="max-w-[1000px] mx-auto">
       
-      <div class="nav-item active cursor-pointer group" @click="$emit('changePage', 'news')">
-        <Megaphone class="icon-nav" /> 
-        <span>ติดตามข่าวสาร</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'status')">
-        <MapPin class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>แจ้งเตือนสถานะพื้นที่</span>
-      </div>
-      
-      <div class="nav-item cursor-pointer group" @click="$emit('changePage', 'contact')">
-        <MessageCircleMore class="icon-nav group-hover:scale-110 transition-transform" /> 
-        <span>ติดต่อเรา</span>
-      </div>
-    </nav>
-
-    <main class="w-full max-w-[1200px] mx-auto p-4 md:p-6 bg-[#E8EAF6]">
-      
-      <section class="text-center py-6">
-        <h2 class="text-2xl font-semibold mb-6">จำนวนผู้ใช้ไฟฟ้าสูงสุด 3 อันดับแรก</h2>
-        <hr class="border-t border-gray-400 opacity-50 mb-6 mx-auto w-3/4">
-        
-        <div class="flex flex-wrap justify-center gap-8 md:gap-16 items-center">
-          
-          <div class="flex items-center gap-4 min-w-[200px]">
-            <div class="w-[60px] h-[60px] bg-black text-white flex justify-center items-center rounded-md border-2 border-[#C4A484]">
-              <Home class="w-7 h-7" />
-            </div>
-            <div class="text-left">
-              <div class="text-base text-gray-700">ลูกค้าบ้านอยู่อาศัย</div>
-              <div class="text-2xl font-bold">73,755</div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-4 min-w-[200px]">
-            <div class="w-[60px] h-[60px] bg-black text-white flex justify-center items-center rounded-md border-2 border-[#C4A484]">
-              <Store class="w-7 h-7" />
-            </div>
-            <div class="text-left">
-              <div class="text-base text-gray-700">กิจการขนาดเล็ก</div>
-              <div class="text-2xl font-bold">55,317</div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-4 min-w-[200px]">
-            <div class="w-[60px] h-[60px] bg-black text-white flex justify-center items-center rounded-md border-2 border-[#C4A484]">
-              <Building2 class="w-7 h-7" />
-            </div>
-            <div class="text-left">
-              <div class="text-base text-gray-700">กิจการขนาดกลาง</div>
-              <div class="text-2xl font-bold">25,441</div>
-            </div>
-          </div>
-
+      <div class="flex items-center gap-4 mb-8">
+        <button 
+          @click="$emit('changePage', 'news')" 
+          class="bg-white p-2.5 rounded-full shadow-sm border border-slate-200 hover:bg-slate-50 transition text-slate-600"
+        >
+          <ArrowLeft class="w-6 h-6" />
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">สถิติภาพรวมไฟดับ</h1>
+          <p class="text-slate-500 text-sm">ข้อมูลสรุปย้อนหลังเพื่อความโปร่งใส</p>
         </div>
-        
-        <hr class="border-t border-gray-400 opacity-50 mt-6 mx-auto w-3/4">
-      </section>
+      </div>
 
-      <section class="flex flex-col md:flex-row gap-8 py-4 px-4">
-        
-        <div class="md:w-1/4 flex flex-col items-center text-center pt-8">
-          <div class="text-2xl font-medium text-gray-700 leading-snug">
-            จำนวนผู้ใช้ไฟฟ้าสะสม<br>ทั้งหมด
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200 relative overflow-hidden">
+          <div class="relative z-10">
+            <p class="text-blue-100 font-medium mb-1">เคสที่แก้ไขเสร็จแล้ว</p>
+            <h2 class="text-4xl font-bold">{{ totalFinished }} <span class="text-lg font-normal">เคส</span></h2>
           </div>
-          <div class="text-6xl font-bold text-[#5EB8FF] mt-4 drop-shadow-sm">
-            141,605
+          <CheckCircle2 class="absolute right-[-20px] bottom-[-20px] w-32 h-32 text-white opacity-10" />
+        </div>
+
+        <div class="bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-6 text-white shadow-lg shadow-orange-200 relative overflow-hidden">
+          <div class="relative z-10">
+             <p class="text-orange-100 font-medium mb-1">เวลาซ่อมเฉลี่ย/เคส</p>
+             <h2 class="text-4xl font-bold">{{ averageTime }} <span class="text-lg font-normal">นาที</span></h2>
+          </div>
+          <Timer class="absolute right-[-20px] bottom-[-20px] w-32 h-32 text-white opacity-10" />
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col justify-center">
+           <p class="text-slate-400 font-medium text-sm mb-2">สาเหตุอันดับ 1</p>
+           <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+             🔥 {{ topReason || '-' }}
+           </h2>
+           <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+             <div class="bg-red-500 h-full" :style="`width: ${topReasonPercent}%`"></div>
+           </div>
+           <p class="text-xs text-slate-400 mt-1">คิดเป็น {{ topReasonPercent }}% ของทั้งหมด</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h3 class="font-bold text-slate-700 mb-6 flex items-center gap-2">
+            <PieChart class="w-5 h-5 text-purple-500" /> สาเหตุที่ไฟดับบ่อยที่สุด
+          </h3>
+          <div class="h-[300px] flex justify-center">
+            <Doughnut v-if="loaded" :data="reasonChartData" :options="chartOptions" />
           </div>
         </div>
 
-        <div class="md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#2E7D96]"></span>ลูกค้าบ้านอยู่อาศัย</div>
-            <div class="card-number">73,755</div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h3 class="font-bold text-slate-700 mb-6 flex items-center gap-2">
+            <BarChart3 class="w-5 h-5 text-blue-500" /> สถิติจำนวนครั้งรายเดือน
+          </h3>
+          <div class="h-[300px]">
+            <Bar v-if="loaded" :data="monthChartData" :options="barOptions" />
           </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#388EBC]"></span>กิจการขนาดเล็ก</div>
-            <div class="card-number">355,317</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#7ABEDF]"></span>กิจการขนาดกลาง</div>
-            <div class="card-number">25,441</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#7ED6BC]"></span>กิจการขนาดใหญ่</div>
-            <div class="card-number">2,675</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#A6E6D3]"></span>กิจการเฉพาะอย่าง</div>
-            <div class="card-number">3,396</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#D3F1E9]"></span>องค์กรไม่แสวงหากำไร</div>
-            <div class="card-number">342</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#A0A0A0]"></span>สูบน้ำเพื่อการเกษตร</div>
-            <div class="card-number">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#FFFFFF] border border-gray-300"></span>ไฟฟ้าชั่วคราว</div>
-            <div class="card-number">30,540</div>
-          </div>
-          <div class="stat-card">
-            <div class="card-header"><span class="dot bg-[#4A6C66]"></span>สถานีอัดประจุไฟฟ้า</div>
-            <div class="card-number">1,002</div>
-          </div>
-
         </div>
-      </section>
 
-    </main>
+      </div>
+
+    </div>
   </div>
 </template>
 
 <script setup>
-import { 
-  User, TriangleAlert, Megaphone, MapPin, MessageCircleMore,
-  Home, Store, Building2 // Import ไอคอนเพิ่ม
-} from 'lucide-vue-next';
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { ArrowLeft, CheckCircle2, Timer, PieChart, BarChart3 } from 'lucide-vue-next';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import { Doughnut, Bar } from 'vue-chartjs';
+
+// ลงทะเบียน Component ของ Chart.js
+ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 const emit = defineEmits(['changePage']);
+const rawData = ref([]);
+const loaded = ref(false);
+
+// ข้อมูลสรุป
+const totalFinished = ref(0);
+const averageTime = ref(0);
+const topReason = ref('');
+const topReasonPercent = ref(0);
+
+// ข้อมูลกราฟ
+const reasonChartData = ref({ labels: [], datasets: [] });
+const monthChartData = ref({ labels: [], datasets: [] });
+
+// Option กราฟ
+const chartOptions = { responsive: true, maintainAspectRatio: false };
+const barOptions = { 
+  responsive: true, 
+  maintainAspectRatio: false,
+  scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+};
+
+// ดึงข้อมูล
+const fetchData = async () => {
+  try {
+    const res = await axios.get(`http://localhost:3000/api/admin/reports?t=${Date.now()}`);
+    // กรองเฉพาะงานที่เสร็จแล้ว
+    const finished = res.data.filter(item => item.status === 'แก้ไขเสร็จสิ้นแล้ว');
+    rawData.value = finished;
+    
+    processData(finished);
+    loaded.value = true;
+  } catch (err) { console.error(err); }
+};
+
+// ⚙️ ฟังก์ชันคำนวณข้อมูล (หัวใจหลัก)
+const processData = (data) => {
+  totalFinished.value = data.length;
+
+  if (data.length === 0) return;
+
+  // 1. คำนวณเวลาเฉลี่ย
+  let totalMinutes = 0;
+  let timeCount = 0;
+  data.forEach(item => {
+    if (item.created_at && item.updated_at) {
+      const diff = new Date(item.updated_at) - new Date(item.created_at);
+      if (diff > 0 && diff < 86400000) { // กรองค่า error (ต้องไม่เกิน 1 วัน)
+        totalMinutes += diff;
+        timeCount++;
+      }
+    }
+  });
+  averageTime.value = timeCount > 0 ? Math.round((totalMinutes / 1000 / 60) / timeCount) : 0;
+
+  // 2. เตรียมข้อมูลกราฟสาเหตุ (Reason)
+  const reasonCount = {};
+  data.forEach(item => {
+    const r = item.reason || 'ไม่ระบุ';
+    reasonCount[r] = (reasonCount[r] || 0) + 1;
+  });
+
+  // หาสาเหตุอันดับ 1
+  const sortedReason = Object.entries(reasonCount).sort((a,b) => b[1] - a[1]);
+  if (sortedReason.length > 0) {
+    topReason.value = sortedReason[0][0];
+    topReasonPercent.value = Math.round((sortedReason[0][1] / totalFinished.value) * 100);
+  }
+
+  reasonChartData.value = {
+    labels: Object.keys(reasonCount),
+    datasets: [{
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+      data: Object.values(reasonCount)
+    }]
+  };
+
+  // 3. เตรียมข้อมูลกราฟรายเดือน (Month)
+  const monthCount = {};
+  const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  
+  // เรียงเดือนตามจริง
+  const currentYear = new Date().getFullYear();
+  // สร้างโครงเดือนเปล่าๆ ไว้ก่อน
+  for(let i=0; i<12; i++) monthCount[i] = 0;
+
+  data.forEach(item => {
+    const d = new Date(item.created_at);
+    // นับเฉพาะปีปัจจุบัน (หรือจะเอาทุกปีก็ได้)
+    if (d.getFullYear() === currentYear || d.getFullYear() === currentYear + 543) { 
+        monthCount[d.getMonth()]++;
+    }
+  });
+
+  monthChartData.value = {
+    labels: thaiMonths,
+    datasets: [{
+      label: 'จำนวนครั้งไฟดับปีนี้',
+      backgroundColor: '#3b82f6',
+      borderRadius: 6,
+      data: Object.values(monthCount)
+    }]
+  };
+};
+
+onMounted(() => {
+  fetchData();
+});
 </script>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap');
-
-.font-sarabun { font-family: 'Sarabun', sans-serif; }
-
-/* Navbar Styles (Theme เดิม) */
-.nav-item {
-  text-decoration: none;
-  color: #000;
-  text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: opacity 0.2s;
-}
-.nav-item:hover { opacity: 0.7; }
-.icon-nav { width: 28px; height: 28px; margin-bottom: 4px; }
-.nav-item.active { position: relative; }
-.nav-item.active::after { content: ''; display: block; width: 80%; height: 3px; background: white; margin-top: 4px; border-radius: 2px; }
-
-/* Custom Styles for Statistics */
-.stat-card {
-  background-color: #DDDDDD;
-  border-radius: 12px;
-  padding: 15px 20px;
-  height: 110px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: transform 0.2s;
-}
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.card-number {
-  text-align: right;
-  font-size: 26px;
-  font-weight: 600;
-}
-</style>

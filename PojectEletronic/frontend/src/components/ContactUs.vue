@@ -1,64 +1,116 @@
 <template>
-  <div class="min-h-screen bg-[#e9e6f6] font-sarabun text-[#333]">
+  <div class="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sarabun">
     
-   
+    <div class="max-w-5xl mx-auto">
+      
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2 flex justify-center items-center gap-2">
+          <Headset class="w-8 h-8 text-blue-600" /> ติดต่อเรา / สอบถามข้อมูล
+        </h1>
+        <p class="text-slate-500">หากมีข้อสงสัยหรือต้องการความช่วยเหลือ ติดต่อเราได้ตามช่องทางด้านล่าง</p>
+      </div>
 
-    <div class="content flex justify-center p-4 md:p-8">
-      <div class="panel bg-white rounded-lg shadow-sm w-full max-w-[1050px] p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         
-        <h5 class="section-title flex items-center gap-2 text-[#f1a23a] font-bold text-xl mb-6">
-          <MessageSquareText class="w-6 h-6" /> สอบถามข้อมูล
-        </h5>
-
-        <div class="panel-body flex flex-col md:flex-row gap-8 min-h-[360px]">
+        <div class="space-y-6">
           
-          <form class="form-area w-full md:max-w-[520px]" @submit.prevent="submitForm">
-            <div class="mb-4">
-              <label class="block font-bold mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
-              <input v-model.trim="form.fullname" type="text" class="form-control" required />
-            </div>
-
-            <div class="mb-4">
-              <label class="block font-bold mb-1">อายุ <span class="text-red-500">*</span></label>
-              <input v-model.number="form.age" type="number" min="1" class="form-control" required />
-            </div>
-
-            <div class="mb-4">
-              <label class="block font-bold mb-1">เพศ <span class="text-red-500">*</span></label>
-              <div class="flex gap-6 items-center mt-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" value="ชาย" v-model="form.gender" class="w-4 h-4" required />
-                  <span>ชาย</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" value="หญิง" v-model="form.gender" class="w-4 h-4" required />
-                  <span>หญิง</span>
-                </label>
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="bg-white/20 p-3 rounded-full">
+                <PhoneCall class="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 class="font-bold text-lg">ศูนย์บริการลูกค้า 24 ชม.</h3>
+                <p class="text-blue-100 text-sm">แจ้งเหตุขัดข้องเร่งด่วน</p>
               </div>
             </div>
+            <p class="text-3xl font-bold tracking-wider">02-123-4567</p>
+          </div>
 
-            <div class="mb-4">
-              <label class="block font-bold mb-1">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
-              <input v-model.trim="form.phone" type="tel" class="form-control" required />
+          <a href="https://line.me/R/ti/p/@687xezjv" target="_blank" class="block group">
+            <div class="bg-[#06C755] rounded-2xl p-6 text-white shadow-lg shadow-green-200 cursor-pointer hover:bg-[#05b54d] transition relative overflow-hidden">
+              <div class="relative z-10 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="bg-white/20 p-3 rounded-full">
+                    <MessageCircle class="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-lg">Zigzaggon Service</h3>
+                    <p class="text-green-100 text-sm">@687xezjv</p>
+                  </div>
+                </div>
+                <ArrowRight class="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
+              </div>
+              <MessageCircle class="absolute -right-4 -bottom-4 w-32 h-32 text-white opacity-10 rotate-12" />
             </div>
+          </a>
 
-            <div class="mb-4">
-              <label class="block font-bold mb-1">รายละเอียด <span class="text-red-500">*</span></label>
-              <textarea v-model.trim="form.detail" class="form-control h-32" required></textarea>
-            </div>
-          </form>
-
-          <div class="side-actions flex-1 flex justify-end items-end pb-2">
-            <button 
-              class="send-btn bg-[#7fe4dd] text-[#0d2b45] font-bold py-2 px-8 rounded-full shadow-md hover:opacity-90 transition transform active:translate-y-1"
-              type="button" 
-              @click="submitForm"
-            >
-            
-            </button>
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+               <MapPin class="w-5 h-5 text-red-500" /> ที่ตั้งสำนักงาน
+             </h3>
+             <p class="text-slate-500 text-sm leading-relaxed">
+               สำนักงานการไฟฟ้าชุมชนเมเจอร์ปากเกร็ด <br>
+               เลขที่ 99/9 หมู่ 3 ถนนแจ้งวัฒนะ ตำบลปากเกร็ด <br>
+               อำเภอปากเกร็ด จังหวัดนนทบุรี 11120
+             </p>
+             <div class="mt-4 h-48 bg-slate-100 rounded-xl overflow-hidden relative shadow-inner">
+               <iframe 
+                 src="https://www.google.com/maps?q=13.9074513,100.5025009&z=15&output=embed" 
+                 width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
+               </iframe>
+             </div>
           </div>
 
         </div>
+
+        <div class="bg-white rounded-3xl p-8 shadow-md border border-slate-100">
+          <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <Mail class="w-6 h-6 text-blue-500" /> ส่งข้อความถึงเรา
+          </h3>
+
+          <form @submit.prevent="submitForm" class="space-y-5">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">หัวข้อที่ต้องการติดต่อ <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <select v-model="form.topic" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 appearance-none focus:ring-2 focus:ring-blue-100 outline-none transition cursor-pointer">
+                  <option value="" disabled>-- กรุณาเลือกหัวข้อ --</option>
+                  <option value="สอบถามข้อมูลทั่วไป">สอบถามข้อมูลทั่วไป</option>
+                  <option value="ติดตามงานซ่อม/แจ้งเหตุซ้ำ">ติดตามงานซ่อม / แจ้งเหตุซ้ำ</option>
+                  <option value="ร้องเรียนการบริการ">ร้องเรียนการบริการ</option>
+                  <option value="ขอติดตั้งมิเตอร์ใหม่">ขอติดตั้งมิเตอร์ใหม่</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-3.5 w-5 h-5 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">ชื่อ - นามสกุล <span class="text-red-500">*</span></label>
+              <input v-model="form.name" type="text" required placeholder="ระบุชื่อผู้ติดต่อ" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+              <input v-model="form.phone" type="tel" required placeholder="08x-xxx-xxxx" maxlength="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">รายละเอียด <span class="text-red-500">*</span></label>
+              <textarea v-model="form.message" required rows="4" placeholder="พิมพ์ข้อความของคุณที่นี่..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition resize-none"></textarea>
+            </div>
+
+            <button 
+              type="submit" 
+              :disabled="isSubmitting"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span v-if="!isSubmitting">ส่งข้อความ</span>
+              <span v-else class="flex items-center gap-2"><Loader2 class="animate-spin" /> กำลังส่ง...</span>
+            </button>
+          </form>
+        </div>
+
       </div>
     </div>
 
@@ -66,75 +118,56 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 import { 
-  User, TriangleAlert, Megaphone, MapPin, MessageCircleMore, 
-  MessageSquareText // เพิ่มไอคอนสำหรับหัวข้อ
+  Headset, PhoneCall, MessageCircle, MapPin, Mail, 
+  ArrowRight, ChevronDown, Loader2 
 } from 'lucide-vue-next';
 
-const emit = defineEmits(['changePage']);
+const isSubmitting = ref(false);
 
-// เพิ่มฟังก์ชันนี้ใน <script setup> ของ ContactUs.vue
-const goToAdmin = () => {
-  emit('changePage', 'dashboard');
-};
-
-// State ของฟอร์ม
-const form = ref({
-  fullname: "",
-  age: null,
-  gender: "",
-  phone: "",
-  detail: ""
+const form = reactive({
+  topic: '',
+  name: '',
+  phone: '',
+  message: ''
 });
 
-const submitForm = () => {
-  // ตรวจสอบความถูกต้องเบื้องต้น (Validation)
-  if (!form.value.fullname || !form.value.phone || !form.value.detail) {
-    alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
-    return;
+const submitForm = async () => {
+  isSubmitting.value = true;
+  try {
+    const res = await axios.post('http://localhost:3000/api/contact', form);
+    
+    if (res.data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'ส่งข้อความสำเร็จ',
+        text: 'เจ้าหน้าที่ได้รับข้อความแล้ว จะรีบติดต่อกลับโดยเร็วที่สุดครับ',
+        confirmButtonColor: '#2563eb',
+        confirmButtonText: 'ตกลง'
+      });
+      form.topic = '';
+      form.name = '';
+      form.phone = '';
+      form.message = '';
+    }
+  } catch (error) {
+    console.error(error);
+    Swal.fire({
+      icon: 'error',
+      title: 'ส่งไม่สำเร็จ',
+      text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ โปรดลองใหม่อีกครั้ง',
+      confirmButtonColor: '#ef4444'
+    });
+  } finally {
+    isSubmitting.value = false;
   }
-
-  console.log("Submitting:", form.value);
-  alert("ส่งข้อมูลเรียบร้อย!");
-  
-  // รีเซ็ตฟอร์ม
-  form.value = { fullname: "", age: null, gender: "", phone: "", detail: "" };
 };
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap');
 .font-sarabun { font-family: 'Sarabun', sans-serif; }
-
-/* Navbar Styles (Standard) */
-.nav-item {
-  text-decoration: none;
-  color: #000;
-  text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: opacity 0.2s;
-}
-.nav-item:hover { opacity: 0.7; }
-.icon-nav { width: 28px; height: 28px; margin-bottom: 4px; }
-.nav-item.active { position: relative; }
-.nav-item.active::after { content: ''; display: block; width: 80%; height: 3px; background: white; margin-top: 4px; border-radius: 2px; }
-
-/* Form Styles */
-.form-control {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.form-control:focus {
-  border-color: #7fc9ff;
-}
 </style>

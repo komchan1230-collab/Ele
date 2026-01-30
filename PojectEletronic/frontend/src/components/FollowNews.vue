@@ -1,140 +1,157 @@
 <template>
-  <div class="min-h-screen bg-[#f8fafc] font-sarabun text-[#333]">
+  <div class="min-h-screen bg-[#f8fafc] font-sarabun text-[#333] p-4 md:p-8">
     
-    <main class="max-w-[1200px] mx-auto p-6">
+    <main class="max-w-[1200px] mx-auto">
       
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-slate-800 mb-2 flex justify-center items-center gap-2">
-          <History class="text-blue-600 w-8 h-8" /> ประวัติการแก้ไขไฟดับ
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-slate-800 mb-2 flex justify-center items-center gap-3">
+          <div class="bg-blue-100 p-2 rounded-full">
+            <History class="text-blue-600 w-6 h-6" />
+          </div>
+          ประวัติการแก้ไขไฟดับ
         </h1>
-        <p class="text-slate-500">รายการแจ้งเหตุที่เจ้าหน้าที่ดำเนินการแก้ไขเสร็จสิ้นแล้ว</p>
+        <p class="text-slate-500">สถิติและระยะเวลาที่ใช้ในการซ่อมแซมแต่ละจุด</p>
       </div>
 
-      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8">
-        <div class="flex items-center gap-2 mb-4 text-slate-700 font-bold text-sm">
-          <Filter class="w-4 h-4 text-blue-500" /> ตัวกรองค้นหา
+      <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8 relative">
+        
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center gap-2 text-slate-700 font-bold text-sm">
+            <Filter class="w-4 h-4 text-blue-500" /> ตัวกรองค้นหา
+          </div>
+          
+          <button 
+            v-if="filters.date || filters.reason || filters.keyword" 
+            @click="resetFilters" 
+            class="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1 transition bg-red-50 px-3 py-1.5 rounded-full border border-red-100 hover:bg-red-100"
+          >
+            <RotateCcw class="w-3 h-3" /> ล้างค่าทั้งหมด
+          </button>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
           <div class="relative group">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Calendar class="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition" />
+              <Calendar class="h-5 w-5 text-gray-400" />
             </div>
             <input 
               v-model="filters.date" 
               type="date" 
-              class="pl-10 block w-full rounded-xl border border-gray-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-blue-500 transition sm:text-sm py-2.5 outline-none" 
+              class="pl-10 block w-full rounded-xl border border-gray-200 bg-slate-50 py-3 outline-none text-slate-600 focus:ring-2 focus:ring-blue-100 transition cursor-pointer" 
             />
           </div>
 
           <div class="relative group">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Clock class="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition" />
+              <TriangleAlert class="h-5 w-5 text-gray-400" />
             </div>
-            <input 
-              v-model="filters.startTime" 
-              type="time" 
-              class="pl-10 block w-full rounded-xl border border-gray-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-blue-500 transition sm:text-sm py-2.5 outline-none" 
-            />
-          </div>
-
-          <div class="relative group">
-             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Clock class="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition" />
+            <select 
+              v-model="filters.reason" 
+              class="pl-10 pr-8 block w-full rounded-xl border border-gray-200 bg-slate-50 py-3 outline-none text-slate-600 appearance-none cursor-pointer focus:ring-2 focus:ring-blue-100 transition"
+            >
+              <option value="">ทั้งหมด (ทุกสาเหตุ)</option>
+              <option value="สายไฟ/อุปกรณ์ชำรุด">สายไฟ/อุปกรณ์ชำรุด</option>
+              <option value="ภัยธรรมชาติ/ฝนตก">ภัยธรรมชาติ/ฝนตก</option>
+              <option value="สัตว์ทำไฟฟ้าลัดวงจร">สัตว์ทำไฟฟ้าลัดวงจร</option>
+              <option value="อุบัติเหตุ/รถชนเสาไฟ">อุบัติเหตุ/รถชนเสาไฟ</option>
+              <option value="หม้อแปลงระเบิด">หม้อแปลงระเบิด</option>
+              <option value="ไม่ทราบสาเหตุ">ไม่ทราบสาเหตุ</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </div>
-            <input 
-              v-model="filters.endTime" 
-              type="time" 
-              class="pl-10 block w-full rounded-xl border border-gray-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-blue-500 transition sm:text-sm py-2.5 outline-none" 
-            />
           </div>
 
           <div class="relative group">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search class="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition" />
+              <Search class="h-5 w-5 text-gray-400" />
             </div>
             <input 
               v-model="filters.keyword" 
               type="text" 
-              placeholder="ระบุสถานที่ / สาเหตุ..." 
-              class="pl-10 block w-full rounded-xl border border-gray-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-blue-500 transition sm:text-sm py-2.5 outline-none" 
+              placeholder="ระบุสถานที่..." 
+              class="pl-10 block w-full rounded-xl border border-gray-200 bg-slate-50 py-3 outline-none text-slate-600 focus:ring-2 focus:ring-blue-100 transition" 
             />
-            <button v-if="filters.keyword || filters.date || filters.startTime" @click="resetFilters" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500 cursor-pointer transition">
-              <X class="h-4 w-4" />
-            </button>
           </div>
+
         </div>
       </div>
 
-      <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-4">
+      <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-6 px-2">
         <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
-          <CheckCircle2 class="text-green-500" /> งานที่เสร็จแล้ว ({{ displayedData.length }})
+          <CheckCircle2 class="text-green-500 w-6 h-6" /> งานที่เสร็จแล้ว ({{ displayedData.length }})
         </h2>
         
         <button 
-          @click="$emit('changePage', 'statistics')"
-          class="bg-white text-blue-600 border border-blue-200 px-4 py-2 rounded-lg shadow-sm hover:bg-blue-50 font-bold text-sm transition flex items-center gap-2"
+          @click="$emit('changePage', 'statistics')" 
+          class="bg-white text-blue-600 border border-blue-200 px-5 py-2 rounded-xl shadow-sm hover:bg-blue-50 font-bold text-sm transition flex items-center gap-2 hover:-translate-y-0.5"
         >
-          <BarChart3 class="w-4 h-4" /> ข้อมูลสถิติ
+          <BarChart3 class="w-4 h-4" /> ดูสถิติภาพรวม
         </button>
       </div>
 
-      <div class="w-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[800px] text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-50 text-slate-500 text-sm uppercase tracking-wider">
-                <th class="py-4 pl-6 w-[20%] font-bold">วัน/เวลา ที่แจ้ง</th>
-                <th class="py-4 w-[25%] font-bold">ผู้แจ้ง / จุดบริเวณ</th>
-                <th class="py-4 w-[35%] font-bold">สาเหตุ / รายละเอียด</th>
-                <th class="py-4 w-[20%] font-bold text-center">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody class="text-sm md:text-base divide-y divide-slate-100">
-              <tr 
-                v-for="(item, index) in displayedData" 
-                :key="item.id"
-                class="hover:bg-blue-50/50 transition duration-150"
-              >
-                <td class="py-4 pl-6 align-top">
-                   <div class="font-bold text-slate-700">{{ formatDate(item.created_at) }}</div>
-                   <div class="text-slate-400 text-xs flex items-center gap-1 mt-1 font-medium bg-slate-100 w-fit px-2 py-0.5 rounded">
-                     <Clock class="w-3 h-3" /> {{ formatTime(item.created_at) }} น.
-                   </div>
-                </td>
-                
-                <td class="py-4 align-top">
-                  <div class="font-bold text-slate-800 flex items-center gap-1">
-                    <MapPin class="w-4 h-4 text-red-500" /> {{ item.reporter_name }}
-                  </div>
-                  <div class="text-slate-500 text-xs mt-1 pl-5">{{ item.phone || '-' }}</div>
-                </td>
-                
-                <td class="py-4 align-top">
-                  <div class="text-orange-600 font-bold text-sm mb-1">⚠️ {{ item.reason || 'ไม่ระบุ' }}</div>
-                  <div class="text-slate-500 text-sm italic">"{{ item.details || '-' }}"</div>
-                </td>
-                
-                <td class="py-4 text-center align-top">
-                  <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200 shadow-sm">
-                    <CheckCircle2 class="w-3.5 h-3.5" /> แก้ไขเสร็จสิ้น
-                  </span>
-                </td>
-              </tr>
+      <div class="space-y-4">
+        <div 
+          v-for="(item, index) in displayedData" 
+          :key="item.id" 
+          class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-200 flex flex-col md:flex-row items-center gap-6 group"
+        >
+          
+          <div class="md:w-[20%] min-w-[150px] text-center md:text-left border-r border-slate-100 pr-6">
+            <div class="font-bold text-slate-800 text-lg">{{ formatDateFull(item.updated_at || item.created_at) }}</div> 
+            <div class="text-slate-400 text-xs font-medium mt-1">วันที่ปิดงานแก้ไข</div>
+          </div>
 
-              <tr v-if="displayedData.length === 0">
-                <td colspan="4" class="text-center py-12 text-slate-400">
-                   <div class="flex flex-col items-center gap-2">
-                     <History class="w-12 h-12 text-slate-200" />
-                     <span>ไม่พบข้อมูลประวัติการซ่อมตามเงื่อนไขที่ค้นหา</span>
-                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="md:w-[35%] flex-grow w-full">
+            <div class="flex items-start gap-3">
+               <div class="bg-red-50 p-2.5 rounded-full mt-1"><MapPin class="w-6 h-6 text-red-500" /></div>
+               <div>
+                 <h3 class="font-bold text-xl text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">
+                    {{ item.location_name || item.reporter_name || 'ไม่ระบุชื่อสถานที่' }}
+                 </h3>
+                 <div class="flex items-center gap-2 mt-2">
+                   <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">
+                     ⚠️ {{ item.reason }}
+                   </span>
+                   <span v-if="!item.location_name" class="text-xs text-gray-400">(ผู้แจ้ง: {{ item.reporter_name }})</span>
+                 </div>
+               </div>
+            </div>
+          </div>
+
+          <div class="md:w-[25%] w-full bg-slate-50 rounded-xl p-3 border border-slate-100">
+             <div class="flex justify-between items-center mb-1">
+               <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ระยะเวลาดำเนินการ</span>
+               <Timer class="w-4 h-4 text-blue-400" />
+             </div>
+             
+             <div class="font-bold text-blue-900 text-lg">
+                {{ calculateDuration(item.created_at, item.updated_at) }}
+             </div>
+             
+             <div class="flex justify-between text-[11px] text-slate-500 mt-1 font-medium">
+               <span>เริ่ม: {{ formatTime(item.created_at) }}</span>
+               <span v-if="item.updated_at">เสร็จ: {{ formatTime(item.updated_at) }}</span>
+               <span v-else>เสร็จ: -</span>
+             </div>
+          </div>
+
+          <div class="md:w-[20%] w-full flex justify-end">
+             <span class="px-4 py-2 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200 shadow-sm flex items-center gap-2">
+               <CheckCircle2 class="w-4 h-4" /> แก้ไขเสร็จสิ้น
+             </span>
+          </div>
+        </div>
+
+        <div v-if="displayedData.length === 0" class="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
+           <div class="flex flex-col items-center gap-3">
+             <div class="bg-slate-50 p-4 rounded-full"><Search class="w-8 h-8 text-slate-300" /></div>
+             <span class="text-slate-500 font-medium">ไม่พบข้อมูลตามเงื่อนไขที่ค้นหา</span>
+             <button @click="resetFilters" class="text-blue-500 text-sm hover:underline font-bold">ล้างตัวกรอง</button>
+           </div>
         </div>
       </div>
-
     </main>
   </div>
 </template>
@@ -142,91 +159,82 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue';
 import { 
-  User, TriangleAlert, Megaphone, MapPin, 
-  History, Filter, Calendar, Clock, Search, X, CheckCircle2, BarChart3
+  User, History, Filter, Calendar, Search, 
+  CheckCircle2, BarChart3, MapPin, Timer, TriangleAlert, RotateCcw 
 } from 'lucide-vue-next';
 import axios from 'axios';
 
-// Event เปลี่ยนหน้า
 const emit = defineEmits(['changePage']);
-
-// 1. เก็บข้อมูลดิบจาก API reports
 const rawReports = ref([]);
 
-// 2. ตัวแปร Filter
-const filters = reactive({
-  startTime: '',
-  endTime: '',
-  date: '',
-  keyword: ''
-});
+// ตัวกรองข้อมูล
+const filters = reactive({ date: '', reason: '', keyword: '' });
 
-// 3. ดึงข้อมูล (เปลี่ยนจาก /api/news เป็น /api/admin/reports เพื่อเอาข้อมูลจริง)
+// ดึงข้อมูล
 const fetchReports = async () => {
   try {
-    // ใส่ timestamp กัน cache
     const response = await axios.get(`http://localhost:3000/api/admin/reports?t=${Date.now()}`);
     rawReports.value = response.data;
-  } catch (error) {
-    console.error("ดึงข้อมูลไม่สำเร็จ:", error);
-  }
+  } catch (error) { console.error(error); }
 };
 
-// 4. กรองข้อมูล (Computed)
+// กรองข้อมูล (Computed Property)
 const displayedData = computed(() => {
   return rawReports.value.filter(item => {
-    
-    // เงื่อนไขที่ 1: ต้องเป็นงานที่ "เสร็จแล้ว" เท่านั้น
+    // 1. เอาเฉพาะงานที่เสร็จแล้ว
     if (item.status !== 'แก้ไขเสร็จสิ้นแล้ว') return false;
-
-    // เงื่อนไขที่ 2: วันที่
+    
+    // 2. กรองวันที่
     if (filters.date) {
-      const itemDate = new Date(item.created_at).toISOString().split('T')[0];
-      if (itemDate !== filters.date) return false;
+      if (new Date(item.created_at).toISOString().split('T')[0] !== filters.date) return false;
+    }
+    
+    // 3. กรองสาเหตุ
+    if (filters.reason) {
+      if (item.reason !== filters.reason) return false;
     }
 
-    // เงื่อนไขที่ 3: Keyword (ค้นหาจาก ชื่อผู้แจ้ง, สาเหตุ, รายละเอียด)
+    // 4. กรองคำค้นหา
     if (filters.keyword) {
       const search = filters.keyword.toLowerCase();
-      const text = `${item.reporter_name} ${item.reason} ${item.details || ''}`.toLowerCase();
+      const text = `${item.location_name || ''} ${item.reporter_name}`.toLowerCase();
       if (!text.includes(search)) return false;
     }
-
-    // เงื่อนไขที่ 4: เวลา (เทียบกับเวลาแจ้งเหตุ)
-    if (filters.startTime) {
-      const itemTime = new Date(item.created_at).toTimeString().slice(0, 5);
-      if (itemTime < filters.startTime) return false;
-    }
-    if (filters.endTime) {
-      const itemTime = new Date(item.created_at).toTimeString().slice(0, 5);
-      if (itemTime > filters.endTime) return false;
-    }
-
     return true;
   });
 });
 
-const resetFilters = () => {
-  filters.startTime = '';
-  filters.endTime = '';
-  filters.date = '';
-  filters.keyword = '';
+const resetFilters = () => { filters.date = ''; filters.reason = ''; filters.keyword = ''; };
+
+// คำนวณระยะเวลาซ่อม
+const calculateDuration = (startStr, endStr) => {
+  if (!startStr || !endStr) return 'ไม่ระบุเวลา'; 
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  const diffMs = end - start;
+  
+  if (diffMs < 0) return 'ข้อมูลคลาดเคลื่อน';
+  if (diffMs < 60000) return 'น้อยกว่า 1 นาที'; 
+
+  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (diffHrs > 0) return `${diffHrs} ชม. ${diffMins} นาที`;
+  else return `${diffMins} นาที`;
 };
 
-// จัดรูปแบบวันที่
-const formatDate = (dateStr) => {
+// แปลงวันที่เป็นไทย
+const formatDateFull = (dateStr) => {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('th-TH', { 
-    year: 'numeric', month: 'short', day: 'numeric',
-  });
+  return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-// จัดรูปแบบเวลา
+// แปลงเวลา (เติม น.)
 const formatTime = (dateStr) => {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
-  return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
 };
 
 onMounted(() => {
@@ -236,46 +244,5 @@ onMounted(() => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap');
-
-.font-sarabun {
-  font-family: 'Sarabun', sans-serif;
-}
-</style>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap');
-
-.font-sarabun {
-  font-family: 'Sarabun', sans-serif;
-}
-
-/* Navbar Styles */
-.nav-item {
-  text-decoration: none;
-  color: #000;
-  text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: opacity 0.2s;
-}
-.nav-item:hover { opacity: 0.7; }
-.icon-nav { width: 28px; height: 28px; margin-bottom: 4px; }
-.nav-item.active { position: relative; }
-.nav-item.active::after { content: ''; display: block; width: 80%; height: 3px; background: white; margin-top: 4px; border-radius: 2px; }
-
-/* Filter Input Styles */
-.filter-input {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 8px 12px;
-  background: white;
-  outline: none;
-  text-align: center;
-  width: 120px;
-  height: 42px;
-}
+.font-sarabun { font-family: 'Sarabun', sans-serif; }
 </style>

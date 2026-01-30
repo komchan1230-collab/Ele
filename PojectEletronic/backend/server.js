@@ -25,81 +25,74 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static('uploads'));
 
 // --- ส่วนตั้งค่า LINE Messaging API ---
-// ใช้ Token ตัวล่าสุดที่คุณส่งมา (ล้างค่าช่องว่างอัตโนมัติ)
 const CHANNEL_ACCESS_TOKEN = 'TQvwk7oebF/bEmCjxY6J/DvVHEn7rNpWLitrTbTwRHjbiqTUj74t2eZVTJmsIU9vj2/roTqb2gTiWCzC0jC6anV+gO18MAO8peGL5g66GyNuV5QLlHiM/3ndLx9R+UAvxwmw/hE97krtv6+1cKiHJQdB04t89/1O/w1cDnyilFU='.trim();
+const TARGET_GROUP_ID = 'Cd873f437a3bc1690a68bfb17a6c58bbb'; // Group ID ของเจ้าหน้าที่
 
-// *** เมื่อคุณพิมพ์ในกลุ่มแล้วได้ Group ID จาก Terminal ให้นำมาวางตรงนี้ ***
-// ในไฟล์ server.js
-const TARGET_GROUP_ID = 'Cd873f437a3bc1690a68bfb17a6c58bbb'; // วางรหัสที่ได้มาตรงนี้ครับ
-
-// 2. API สำหรับส่ง LINE (เรียกใช้จากหน้า AdminMenu.vue)
-// แก้ไขเฉพาะก้อนข้อมูล messages ใน server.js
+// ==========================================
+// 2. API สำหรับส่งเข้า LINE (แก้ปุ่มให้ส่งค่า action=accept เท่านั้น)
+// ==========================================
 app.post('/api/admin/line-send', async (req, res) => {
-   const { message, reportId, lat, lng } = req.body; 
+    const { message, reportId, lat, lng } = req.body;
+    
+    // สร้าง Flex Message สำหรับ "แจ้งงานใหม่"
+    const flexMessage = {
+        type: "flex",
+        altText: "มีรายการแจ้งเหตุไฟดับใหม่!",
+        contents: {
+            type: "bubble",
+            header: {
+                type: "box", layout: "vertical", backgroundColor: "#ff5e5e",
+                contents: [{ type: "text", text: "🔥 แจ้งเหตุไฟดับใหม่", color: "#ffffff", weight: "bold", size: "lg" }]
+            },
+            body: {
+                type: "box", layout: "vertical",
+                contents: [
+                    { type: "text", text: message, wrap: true, size: "sm", color: "#666666" }
+                ]
+            },
+            footer: {
+                type: "box", layout: "vertical", spacing: "sm",
+                contents: [
+                    // ปุ่มที่ 1: รับเรื่อง (ส่ง action=accept)
+                    {
+                        type: "button", style: "primary", color: "#00b900", height: "sm",
+                        action: { 
+                            type: "postback", 
+                            label: "✅ รับเรื่องทันที", 
+                            data: `action=accept&id=${reportId}`  // <--- เช็คตรงนี้ต้องเป็น accept
+                        }
+                    },
+                    // ปุ่มที่ 2: ดูแผนที่
+                    {
+                        type: "button", style: "secondary", height: "sm",
+                        action: { 
+                            type: "uri", 
+                            label: "📍 ดูแผนที่", 
+                            uri: `http://googleusercontent.com/maps.google.com/?q=${lat},${lng}` 
+                        }
+                    }
+                ]
+            }
+        }
+    };
 
     try {
         await axios.post('https://api.line.me/v2/bot/message/push', {
             to: TARGET_GROUP_ID,
-            messages: [{
-                type: "flex", // เปลี่ยนจาก text เป็น flex
-                altText: "มีแจ้งเหตุเข้ามาใหม่! (กรุณาดูในมือถือ)",
-                contents: {
-                    type: "bubble",
-                    body: {
-                        type: "box",
-                        layout: "vertical",
-                        contents: [
-                            // ส่วนแสดงข้อความเดิมของคุณ
-                            { type: "text", text: message, wrap: true }
-                        ]
-                    },
-                    footer: {
-                        type: "box",
-                        layout: "vertical",
-                        spacing: "sm",
-                        contents: [
-                            // --- ปุ่มที่ 1: รับเรื่อง (Postback) ---
-                            {
-                                type: "button",
-                                style: "primary",
-                                color: "#00b900", // สีเขียว LINE
-                                action: {
-                                    type: "postback",
-                                    label: "✅ รับเรื่องทันที",
-                                    // ส่งค่ากลับมาบอก Server ว่าใครกดงาน ID ไหน
-                                    data: `action=accept&id=${reportId}` 
-                                }
-                            },
-                            // --- ปุ่มที่ 2: ดูแผนที่ (URI) ---
-                            {
-                                type: "button",
-                                style: "secondary",
-                                action: {
-                                    type: "uri",
-                                    label: "📍 ดูแผนที่",
-                                    // ลิงก์ไป Google Maps
-                                    uri: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
-                                }
-                            }
-                        ]
-                    }
-                }
-            }]
+            messages: [flexMessage]
         }, {
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` 
-            }
+            headers: { 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` }
         });
         res.json({ success: true });
     } catch (error) {
-        console.error("LINE Error:", error.response?.data || error.message);
-        res.status(500).json({ error: "ส่ง LINE ไม่สำเร็จ" });
+        console.error("Line Send Error:", error.response?.data || error.message);
+        res.status(500).json({ success: false });
     }
 });
 
-// 3. Webhook สำหรับดักจับ Group ID (ดูค่าใน Terminal VS Code)
-// แก้ไข API Webhook ใน server.js
+// ==========================================
+// 3. API Webhook รับค่าปุ่มกด (แยกเงื่อนไขชัดเจน)
+// ==========================================
 app.post('/api/line/webhook', async (req, res) => {
     const events = req.body.events;
     if (!events || events.length === 0) return res.sendStatus(200);
@@ -110,16 +103,16 @@ app.post('/api/line/webhook', async (req, res) => {
             const action = data.get('action');
             const reportId = data.get('id');
 
-            // ---------------------------------------------
-            // 1. กรณีเจ้าหน้าที่กด "รับเรื่องทันที" (ปุ่มเขียว)
-            // ---------------------------------------------
+            console.log(`Action Received: ${action} for ID: ${reportId}`); // ไว้ดู Log ใน Terminal
+
+            // --- กรณีที่ 1: กดปุ่ม "รับเรื่อง" ---
             if (action === 'accept' && reportId) {
                 try {
-                    // อัปเดตสถานะเป็น "เจ้าหน้าที่รับเรื่องแล้ว"
+                    // 1. อัปเดตสถานะเป็น "กำลังดำเนินการ"
                     await db.query('UPDATE reports SET status = ? WHERE id = ?', ['เจ้าหน้าที่รับเรื่องแล้ว', reportId]);
                     
+                    // 2. ส่งปุ่ม "ปิดงาน" กลับไปให้เจ้าหน้าที่กดทีหลัง
                     if (event.replyToken) {
-                        // 🔥 ส่งปุ่มใหม่กลับไป: "ซ่อมเสร็จแล้ว"
                         await axios.post('https://api.line.me/v2/bot/message/reply', {
                             replyToken: event.replyToken,
                             messages: [{
@@ -139,7 +132,8 @@ app.post('/api/line/webhook', async (req, res) => {
                                         contents: [
                                             { 
                                                 type: "button", style: "primary", color: "#00b900", height: "sm",
-                                                action: { type: "postback", label: "✅ ซ่อมเสร็จแล้ว / ปิดงาน", data: `action=finish&id=${reportId}` } 
+                                                // ปุ่มนี้ส่ง action=finish
+                                                action: { type: "postback", label: "🎉 ซ่อมเสร็จแล้ว / ปิดงาน", data: `action=finish&id=${reportId}` } 
                                             }
                                         ]
                                     }
@@ -147,16 +141,14 @@ app.post('/api/line/webhook', async (req, res) => {
                             }]
                         }, { headers: { 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` } });
                     }
-                } catch (err) { console.error(err); }
+                } catch (err) { console.error("Accept Error:", err); }
             }
 
-            // ---------------------------------------------
-            // 2. กรณีเจ้าหน้าที่กด "ซ่อมเสร็จแล้ว" (ปุ่มใหม่ที่เราเพิ่งสร้าง)
-            // ---------------------------------------------
-            if (action === 'finish' && reportId) {
+            // --- กรณีที่ 2: กดปุ่ม "ซ่อมเสร็จแล้ว" (ต้องแยก if ออกมาต่างหาก) ---
+            else if (action === 'finish' && reportId) {
                 try {
-                    // อัปเดตสถานะเป็น "แก้ไขเสร็จสิ้นแล้ว" -> รายการจะหายไปจากหน้า AreaStatus ทันที
-                    await db.query('UPDATE reports SET status = ? WHERE id = ?', ['แก้ไขเสร็จสิ้นแล้ว', reportId]);
+                    // อัปเดตสถานะเป็น "เสร็จสิ้น" + บันทึกเวลาจบ (updated_at)
+                    await db.query('UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?', ['แก้ไขเสร็จสิ้นแล้ว', reportId]);
                     
                     if (event.replyToken) {
                         await axios.post('https://api.line.me/v2/bot/message/reply', {
@@ -164,7 +156,7 @@ app.post('/api/line/webhook', async (req, res) => {
                             messages: [{ type: 'text', text: `🎉 ปิดงาน ID: ${reportId} เรียบร้อย! ขอบคุณครับ` }]
                         }, { headers: { 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` } });
                     }
-                } catch (err) { console.error(err); }
+                } catch (err) { console.error("Finish Error:", err); }
             }
         }
     }
@@ -173,13 +165,27 @@ app.post('/api/line/webhook', async (req, res) => {
 
 // 4. API รับข้อมูลแจ้งเหตุ (Frontend) และป้องกันค่า undefined
 app.post('/api/reports', upload.array('images'), async (req, res) => {
-    const { reporter_name, age, gender, reason, phone, details, latitude, longitude } = req.body;
+    // 1. รับค่า location_name เพิ่มเข้ามา
+    const { reporter_name, location_name, age, gender, reason, phone, details, latitude, longitude } = req.body;
     const imageUrls = req.files ? req.files.map(f => f.filename).join(',') : '';
 
     try {
+        // 2. เพิ่ม location_name ลงในคำสั่ง SQL INSERT
         const [result] = await db.execute(
-            'INSERT INTO reports (reporter_name, age, gender, reason, phone, details, latitude, longitude, status, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [reporter_name || null, age || null, gender || 'ไม่ระบุ', reason || 'ไม่ระบุ', phone || null, details || '', latitude || null, longitude || null, 'รอดำเนินการ', imageUrls]
+            'INSERT INTO reports (reporter_name, location_name, age, gender, reason, phone, details, latitude, longitude, status, images, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [
+                reporter_name || null, 
+                location_name || 'ไม่ระบุพิกัด', // <<--- บันทึกชื่อสถานที่ตรงนี้
+                age || null, 
+                gender || 'ไม่ระบุ', 
+                reason || 'ไม่ระบุ', 
+                phone || null, 
+                details || '', 
+                latitude || null, 
+                longitude || null, 
+                'รอดำเนินการ', 
+                imageUrls
+            ]
         );
         res.status(201).json({ message: 'บันทึกสำเร็จ', id: result.insertId });
     } catch (err) {
@@ -217,6 +223,89 @@ app.delete('/api/admin/reports/:id', async (req, res) => {
         res.json({ message: 'ลบข้อมูลสำเร็จ' });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// 🔥 7. API สำหรับหน้า "ติดต่อเรา" (บันทึก + แจ้ง LINE)
+app.post('/api/contact', async (req, res) => {
+    const { name, phone, topic, message } = req.body;
+
+    try {
+        // 1. บันทึกลงฐานข้อมูล
+        // อย่าลืมสร้างตาราง contact_messages ใน SQL ก่อนนะครับ
+        await db.execute(
+            'INSERT INTO contact_messages (name, phone, topic, message) VALUES (?, ?, ?, ?)',
+            [name, phone, topic, message]
+        );
+
+        // 2. ส่งแจ้งเตือนเข้า LINE กลุ่มแอดมิน
+        if (TARGET_GROUP_ID) {
+            const flexMessage = {
+                type: "flex",
+                altText: "มีข้อความติดต่อใหม่",
+                contents: {
+                    type: "bubble",
+                    body: {
+                        type: "box", layout: "vertical",
+                        contents: [
+                            { type: "text", text: "📩 มีข้อความใหม่ถึงแอดมิน", weight: "bold", color: "#1DB446", size: "sm" },
+                            { type: "separator", margin: "md" },
+                            { type: "text", text: `หัวข้อ: ${topic}`, weight: "bold", size: "lg", margin: "md", wrap: true },
+                            { type: "text", text: `"${message}"`, size: "sm", color: "#666666", wrap: true, margin: "sm" },
+                            { type: "separator", margin: "md" },
+                            { type: "text", text: `ผู้ติดต่อ: ${name}`, size: "xs", color: "#aaaaaa", margin: "md" },
+                            { type: "text", text: `เบอร์โทร: ${phone}`, size: "xs", color: "#aaaaaa" }
+                        ]
+                    }
+                }
+            };
+
+            await axios.post('https://api.line.me/v2/bot/message/push', {
+                to: TARGET_GROUP_ID,
+                messages: [flexMessage]
+            }, {
+                headers: { 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}` }
+            });
+        }
+
+        res.json({ success: true, message: 'ส่งข้อความสำเร็จ' });
+    } catch (err) {
+        console.error("Contact Error:", err);
+        // ถ้า error เรื่องตารางไม่พบ ให้สร้างตารางอัตโนมัติ (เผื่อลืมสร้าง)
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+             try {
+                 await db.query(`
+                    CREATE TABLE contact_messages (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(255) NOT NULL,
+                        phone VARCHAR(50) NOT NULL,
+                        topic VARCHAR(100) NOT NULL,
+                        message TEXT NOT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                 `);
+                 // ลองบันทึกอีกรอบ
+                 await db.execute('INSERT INTO contact_messages (name, phone, topic, message) VALUES (?, ?, ?, ?)', [name, phone, topic, message]);
+                 res.json({ success: true, message: 'ส่งข้อความสำเร็จ (Auto Create Table)' });
+             } catch (e) {
+                 res.status(500).json({ error: 'สร้างตารางไม่สำเร็จ' });
+             }
+        } else {
+            res.status(500).json({ error: 'เกิดข้อผิดพลาดในการส่งข้อมูล' });
+        }
+    }
+});
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+
+    // ตั้งค่ารหัสผ่านตรงนี้ (เปลี่ยนได้ตามใจชอบ)
+    const VALID_USER = 'admin';
+    const VALID_PASS = '1234'; 
+
+    if (username === VALID_USER && password === VALID_PASS) {
+        res.json({ success: true, message: 'เข้าสู่ระบบสำเร็จ' });
+    } else {
+        res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
     }
 });
 

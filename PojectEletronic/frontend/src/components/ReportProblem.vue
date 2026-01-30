@@ -8,24 +8,46 @@
             <MapPin class="w-5 h-5 text-red-500" /> ปักหมุดตำแหน่งที่ไฟดับ *
           </h3>
           <button 
-            class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-600 transition shadow-sm" 
+            class="bg-blue-500 text-white px-4 py-1.5 rounded-full text-sm hover:bg-blue-600 transition shadow-sm flex items-center gap-1" 
             type="button" 
             @click="getCurrentLocation"
           >
-            ตำแหน่งปัจจุบัน
+            <Navigation class="w-3 h-3" /> ตำแหน่งปัจจุบัน
           </button>
         </div>
         
-        <div ref="mapContainer" id="map" class="h-[400px] rounded-2xl border-4 border-white shadow-xl z-0"></div>
+        <div ref="mapContainer" id="map" class="h-[400px] rounded-2xl border-4 border-white shadow-xl z-0 relative"></div>
         
-        <p class="mt-2 text-sm text-gray-600">
-          พิกัดที่เลือก: <span class="text-blue-600 font-bold">{{ lat.toFixed(6) }}, {{ lng.toFixed(6) }}</span>
+        <p class="mt-3 text-sm text-gray-500 text-center bg-gray-50 p-2 rounded-lg border border-gray-100">
+          พิกัด GPS: <span class="text-blue-600 font-mono font-bold">{{ lat.toFixed(6) }}, {{ lng.toFixed(6) }}</span>
         </p>
       </div>
 
       <div class="right-panel flex-1 min-w-[300px]">
         <form @submit.prevent="submitForm" class="bg-white p-8 rounded-3xl shadow-lg border border-gray-100">
           
+          <div class="mb-5">
+            <label class="block font-bold mb-1 text-sm text-gray-700 flex items-center gap-1">
+              <MapPin class="w-4 h-4 text-red-500" /> จุดเกิดเหตุ / บริเวณ (ระบบระบุอัตโนมัติ) *
+            </label>
+            <div class="relative">
+              <input 
+                v-model="locationName" 
+                type="text" 
+                class="form-control border-2 border-blue-100 bg-blue-50 text-blue-800 font-bold p-3 w-full rounded-xl focus:ring-2 focus:ring-blue-400 outline-none pr-10 transition" 
+                readonly
+                placeholder="กำลังรอปักหมุด..."
+              >
+              <div v-if="locationName.includes('กำลัง')" class="absolute right-3 top-3.5">
+                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              </div>
+              <div v-else class="absolute right-3 top-3 text-green-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-1 pl-1">* หากตำแหน่งไม่ถูกต้อง ให้ลองเลื่อนหมุดในแผนที่อีกครั้ง</p>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block font-bold mb-1 text-sm text-gray-700">ชื่อ-นามสกุล *</label>
@@ -58,12 +80,14 @@
                 v-if="!isOtpVerified"
                 type="button" 
                 @click="requestOtp" 
-                class="bg-blue-600 text-white px-4 rounded-xl text-sm font-bold hover:bg-blue-700 transition disabled:bg-gray-300 shadow-md"
+                class="bg-blue-600 text-white px-4 rounded-xl text-sm font-bold hover:bg-blue-700 transition disabled:bg-gray-300 shadow-md whitespace-nowrap"
                 :disabled="form.phone.length < 10"
               >
                 {{ otpSent ? 'ขออีกครั้ง' : 'ขอ OTP' }}
               </button>
-              <span v-else class="text-green-600 flex items-center font-bold text-sm px-2">ยืนยันแล้ว ✓</span>
+              <span v-else class="text-green-600 flex items-center font-bold text-sm px-2 bg-green-50 rounded-xl border border-green-200">
+                ยืนยันแล้ว ✓
+              </span>
             </div>
           </div>
 
@@ -88,51 +112,57 @@
           <div class="mb-6">
             <label class="block font-bold mb-1 text-sm text-gray-700">
               แนบรูปภาพพิกัด (ถ้ามี)
-              <span v-if="fileObjects.length > 0" class="text-blue-600 ml-2 animate-pulse">
+              <span v-if="fileObjects.length > 0" class="text-blue-600 ml-2 animate-pulse font-normal text-xs">
                 (เลือกแล้ว {{ fileObjects.length }} รูป)
               </span>
             </label>
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*" 
-              @change="handleFileUpload" 
-              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-            >
+            <div class="relative group">
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                @change="handleFileUpload" 
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              >
+              <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center group-hover:border-blue-400 group-hover:bg-blue-50 transition">
+                <p class="text-gray-500 text-sm">คลิกเพื่อเลือกรูปภาพ หรือลากไฟล์มาวาง</p>
+              </div>
+            </div>
+            
             <div class="flex flex-wrap gap-2 mt-3">
-              <div v-for="(img, index) in previewImages" :key="index" class="relative w-20 h-20">
+              <div v-for="(img, index) in previewImages" :key="index" class="relative w-20 h-20 group">
                 <img :src="img" class="w-full h-full object-cover rounded-xl border shadow-sm" />
-                <button @click="removeImage(index)" type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md">✕</button>
+                <button @click="removeImage(index)" type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md hover:bg-red-600 transition">✕</button>
               </div>
             </div>
           </div>
 
           <button 
             type="submit" 
-            class="w-full bg-green-500 text-white font-bold py-4 rounded-2xl hover:bg-green-600 transition shadow-lg active:scale-95 text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+            class="w-full bg-green-500 text-white font-bold py-4 rounded-2xl hover:bg-green-600 transition shadow-lg active:scale-95 text-lg disabled:bg-gray-300 disabled:cursor-not-allowed flex justify-center items-center gap-2"
             :disabled="!isOtpVerified"
           >
-            {{ isOtpVerified ? 'ส่งข้อมูลแจ้งเหตุ' : 'กรุณายืนยันเบอร์โทรศัพท์ก่อน' }}
+            <span>{{ isOtpVerified ? '🚀 ส่งข้อมูลแจ้งเหตุ' : '🔒 กรุณายืนยันเบอร์โทรศัพท์ก่อน' }}</span>
           </button>
         </form>
       </div>
     </div>
 
-    <div v-if="showOtpModal" class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
-      <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+    <div v-if="showOtpModal" class="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 backdrop-blur-sm transition-all">
+      <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center transform scale-100 animate-in fade-in zoom-in duration-200">
         <div class="mb-4 flex justify-center">
           <div class="bg-blue-100 p-4 rounded-full">
             <Phone class="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <h3 class="text-xl font-bold mb-2">ยืนยันเบอร์โทรศัพท์</h3>
-        <p class="text-sm text-gray-500 mb-6">กรุณากรอกรหัส 6 หลักที่ส่งไปยังเบอร์<br><span class="font-bold text-gray-800">{{ form.phone }}</span></p>
-        <input v-model="inputOtp" type="text" maxlength="6" class="w-full border-2 border-gray-100 p-4 rounded-2xl text-center text-2xl font-bold tracking-[0.4em] mb-6 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="000000">
+        <h3 class="text-xl font-bold mb-2 text-gray-800">ยืนยันเบอร์โทรศัพท์</h3>
+        <p class="text-sm text-gray-500 mb-6">กรุณากรอกรหัส 6 หลักที่ส่งไปยังเบอร์<br><span class="font-bold text-gray-800 text-lg">{{ form.phone }}</span></p>
+        <input v-model="inputOtp" type="text" maxlength="6" class="w-full border-2 border-gray-100 p-4 rounded-2xl text-center text-2xl font-bold tracking-[0.5em] mb-6 focus:border-blue-500 outline-none transition bg-gray-50 text-gray-700" placeholder="••••••">
         <div class="flex flex-col gap-3">
           <button @click="verifyOtp" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg">ยืนยันรหัส OTP</button>
-          <button @click="showOtpModal = false" class="text-gray-400 text-sm hover:underline">ยกเลิก</button>
+          <button @click="showOtpModal = false" class="text-gray-400 text-sm hover:text-gray-600 font-medium">ยกเลิก</button>
         </div>
-        <p class="mt-4 text-xs text-blue-400 font-bold">(รหัสทดสอบ: 123456)</p>
+        <p class="mt-6 text-xs text-blue-400 font-bold bg-blue-50 py-1 px-3 rounded-full inline-block">💡 รหัสทดสอบ: 123456</p>
       </div>
     </div>
   </div>
@@ -142,19 +172,22 @@
 import { ref, onMounted } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Phone } from 'lucide-vue-next';
+import { MapPin, Phone, Navigation } from 'lucide-vue-next';
 import axios from 'axios';
 
 const emit = defineEmits(['changePage']);
 
-// แผนที่
+// แผนที่และพิกัด
 const mapContainer = ref(null);
 const map = ref(null);
 const marker = ref(null);
-const lat = ref(13.9129);
+const lat = ref(13.9129); // ค่าเริ่มต้นปากเกร็ด
 const lng = ref(100.4996);
 
-// ฟอร์ม
+// 🔥 ตัวแปรเก็บชื่อสถานที่
+const locationName = ref('กำลังรอปักหมุด...');
+
+// ข้อมูลฟอร์ม
 const form = ref({
   name: '',
   age: '',
@@ -174,6 +207,36 @@ onMounted(() => {
   initMap();
 });
 
+// 🔥 ฟังก์ชันดึงชื่อสถานที่จากพิกัด (OpenStreetMap)
+const getAddressFromLatLong = async (lat, lng) => {
+  try {
+    locationName.value = 'กำลังค้นหาชื่อสถานที่... ⏳';
+    
+    // API ฟรี ไม่ต้องใช้ Key
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=th`;
+    const response = await axios.get(url);
+    
+    if (response.data && response.data.display_name) {
+       const addr = response.data.address;
+       // พยายามย่อชื่อให้สั้นลง
+       let shortAddr = '';
+       if (addr.road) shortAddr += 'ถ.' + addr.road + ' ';
+       if (addr.village) shortAddr += addr.village + ' ';
+       if (addr.suburb) shortAddr += 'ต.' + addr.suburb + ' ';
+       if (addr.city_district) shortAddr += 'อ.' + addr.city_district + ' ';
+       if (addr.state) shortAddr += 'จ.' + addr.state;
+
+       // ถ้ามีชื่อย่อก็ใช้ ถ้าไม่มีก็ใช้ชื่อเต็ม
+       locationName.value = shortAddr || response.data.display_name;
+    } else {
+       locationName.value = 'ระบุพิกัดแล้ว (ค้นหาชื่อไม่เจอ)';
+    }
+  } catch (error) {
+    console.error("Geocoding Error:", error);
+    locationName.value = 'ระบุพิกัดแล้ว (ค้นหาชื่อไม่เจอ)';
+  }
+};
+
 const requestOtp = () => {
   if (form.value.phone.length === 10) {
     otpSent.value = true;
@@ -185,9 +248,9 @@ const verifyOtp = () => {
   if (inputOtp.value === mockServerOtp) {
     isOtpVerified.value = true;
     showOtpModal.value = false;
-    alert("ยืนยันเบอร์โทรศัพท์สำเร็จ!");
+    alert("✅ ยืนยันเบอร์โทรศัพท์สำเร็จ!");
   } else {
-    alert("รหัสไม่ถูกต้อง (ลองกรอก 123456)");
+    alert("❌ รหัสไม่ถูกต้อง (ลองกรอก 123456)");
     inputOtp.value = '';
   }
 };
@@ -197,10 +260,11 @@ const filterPhone = (event) => {
   form.value.phone = input.slice(0, 10);
 };
 
-// แผนที่
+// เริ่มต้นแผนที่
 const initMap = () => {
   map.value = L.map(mapContainer.value).setView([lat.value, lng.value], 16);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map.value);
+  
   const DefaultIcon = L.icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
@@ -208,8 +272,16 @@ const initMap = () => {
     iconAnchor: [12, 41]
   });
   L.Marker.prototype.options.icon = DefaultIcon;
+  
   marker.value = L.marker([lat.value, lng.value], { draggable: true }).addTo(map.value);
+  
+  // เรียกครั้งแรก
+  getAddressFromLatLong(lat.value, lng.value);
+
+  // คลิกแผนที่
   map.value.on('click', (e) => updatePosition(e.latlng.lat, e.latlng.lng));
+  
+  // ลากหมุด
   marker.value.on('dragend', () => {
     const pos = marker.value.getLatLng();
     updatePosition(pos.lat, pos.lng);
@@ -220,6 +292,9 @@ const updatePosition = (nLat, nLng) => {
   lat.value = nLat;
   lng.value = nLng;
   marker.value.setLatLng([nLat, nLng]);
+  
+  // 🔥 สั่งหาชื่อสถานที่ใหม่ทุกครั้งที่ขยับ
+  getAddressFromLatLong(nLat, nLng);
 };
 
 const getCurrentLocation = () => {
@@ -242,21 +317,27 @@ const submitForm = async () => {
     formData.append('details', form.value.details);
     formData.append('latitude', lat.value);
     formData.append('longitude', lng.value);
+    
+    // 🔥 ส่งชื่อสถานที่ไปด้วย
+    formData.append('location_name', locationName.value);
+    
     fileObjects.value.forEach((file) => formData.append('images', file));
 
     const response = await axios.post('http://localhost:3000/api/reports', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+    
     if (response.status === 201) {
-      alert('ส่งข้อมูลแจ้งเหตุสำเร็จ!');
+      alert('✅ ส่งข้อมูลแจ้งเหตุสำเร็จ!');
       emit('changePage', 'status');
     }
   } catch (error) {
-    alert('ส่งข้อมูลไม่สำเร็จ กรุณาเช็ค Backend');
+    console.error(error);
+    alert('❌ ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบ Server');
   }
 };
 
-// จัดการรูปภาพ
+// รูปภาพ
 const previewImages = ref([]);
 const fileObjects = ref([]);
 const handleFileUpload = (event) => {
