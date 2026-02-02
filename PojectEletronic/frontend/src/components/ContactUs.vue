@@ -91,6 +91,10 @@
             </div>
 
             <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">อีเมลติดต่อกลับ (Email)</label>
+              <input v-model="form.email" type="email" placeholder="example@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition" />
+            </div>
+            <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
               <input v-model="form.phone" type="tel" required placeholder="08x-xxx-xxxx" maxlength="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition" />
             </div>
@@ -131,6 +135,7 @@ const isSubmitting = ref(false);
 const form = reactive({
   topic: '',
   name: '',
+  email: '', // 🔥 เพิ่มตัวแปร email ใน script
   phone: '',
   message: ''
 });
@@ -150,6 +155,7 @@ const submitForm = async () => {
       });
       form.topic = '';
       form.name = '';
+      form.email = ''; // 🔥 เพิ่มการล้างค่า email หลังส่งเสร็จ
       form.phone = '';
       form.message = '';
     }

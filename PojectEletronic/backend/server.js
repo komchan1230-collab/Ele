@@ -227,18 +227,18 @@ app.delete('/api/admin/reports/:id', async (req, res) => {
 });
 
 // 🔥 7. API สำหรับหน้า "ติดต่อเรา" (บันทึก + แจ้ง LINE)
+// 🔥 7. API สำหรับหน้า "ติดต่อเรา" (เพิ่ม email)
 app.post('/api/contact', async (req, res) => {
-    const { name, phone, topic, message } = req.body;
+    const { name, email, phone, topic, message } = req.body; // <--- รับ email เพิ่ม
 
     try {
-        // 1. บันทึกลงฐานข้อมูล
-        // อย่าลืมสร้างตาราง contact_messages ใน SQL ก่อนนะครับ
+        // 1. บันทึกลงฐานข้อมูล (เพิ่ม column email)
         await db.execute(
-            'INSERT INTO contact_messages (name, phone, topic, message) VALUES (?, ?, ?, ?)',
-            [name, phone, topic, message]
+            'INSERT INTO contact_messages (name, email, phone, topic, message) VALUES (?, ?, ?, ?, ?)',
+            [name, email || '-', phone, topic, message]
         );
 
-        // 2. ส่งแจ้งเตือนเข้า LINE กลุ่มแอดมิน
+        // 2. ส่งแจ้งเตือนเข้า LINE (เพิ่มบรรทัดแสดงอีเมล)
         if (TARGET_GROUP_ID) {
             const flexMessage = {
                 type: "flex",
@@ -254,7 +254,8 @@ app.post('/api/contact', async (req, res) => {
                             { type: "text", text: `"${message}"`, size: "sm", color: "#666666", wrap: true, margin: "sm" },
                             { type: "separator", margin: "md" },
                             { type: "text", text: `ผู้ติดต่อ: ${name}`, size: "xs", color: "#aaaaaa", margin: "md" },
-                            { type: "text", text: `เบอร์โทร: ${phone}`, size: "xs", color: "#aaaaaa" }
+                            { type: "text", text: `อีเมล: ${email}`, size: "xs", color: "#0000ff", margin: "xs", action: { type: "uri", uri: `mailto:${email}` } }, // <--- กดแล้วเด้งไปหน้าส่งเมลเลย
+                            { type: "text", text: `เบอร์โทร: ${phone}`, size: "xs", color: "#aaaaaa", margin: "xs" }
                         ]
                     }
                 }
@@ -271,28 +272,7 @@ app.post('/api/contact', async (req, res) => {
         res.json({ success: true, message: 'ส่งข้อความสำเร็จ' });
     } catch (err) {
         console.error("Contact Error:", err);
-        // ถ้า error เรื่องตารางไม่พบ ให้สร้างตารางอัตโนมัติ (เผื่อลืมสร้าง)
-        if (err.code === 'ER_NO_SUCH_TABLE') {
-             try {
-                 await db.query(`
-                    CREATE TABLE contact_messages (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        name VARCHAR(255) NOT NULL,
-                        phone VARCHAR(50) NOT NULL,
-                        topic VARCHAR(100) NOT NULL,
-                        message TEXT NOT NULL,
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )
-                 `);
-                 // ลองบันทึกอีกรอบ
-                 await db.execute('INSERT INTO contact_messages (name, phone, topic, message) VALUES (?, ?, ?, ?)', [name, phone, topic, message]);
-                 res.json({ success: true, message: 'ส่งข้อความสำเร็จ (Auto Create Table)' });
-             } catch (e) {
-                 res.status(500).json({ error: 'สร้างตารางไม่สำเร็จ' });
-             }
-        } else {
-            res.status(500).json({ error: 'เกิดข้อผิดพลาดในการส่งข้อมูล' });
-        }
+        res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
     }
 });
 app.post('/api/login', (req, res) => {
